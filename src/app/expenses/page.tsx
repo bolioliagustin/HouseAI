@@ -11,11 +11,12 @@ import {
   Settings,
   Plus,
   Trash2,
-  Edit2,
   ArrowLeft,
   Save,
   X,
+  Edit2,
 } from "lucide-react";
+import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 
 type FixedExpense = {
   id: string;
@@ -88,19 +89,18 @@ export default function ExpensesPage() {
 
       // Notify house members if shared expense
       if (isShared) {
+        // We don't have user name readily available here without extra fetch, 
+        // so we'll omit it for now or rely on the category icon/desc
         const catInfo = CATEGORIES.find((c) => c.value === category);
-        console.log("Enviando notificación a la casa...");
-        fetch("/api/push/notify-house", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: "💸 Nuevo gasto compartido",
-            body: `${catInfo?.icon || "📦"} ${description || category} — $${Math.ceil(parseFloat(amount))}`,
-          }),
-        })
-        .then(res => res.json())
-        .then(data => console.log("Resultado notificación:", data))
-        .catch(err => console.error("Error enviando notificación:", err));
+        const expenseDesc = `${catInfo?.icon || "📦"} ${description || category}`;
+        
+        await sendNotification(
+            NOTIFICATION_TEMPLATES.NEW_EXPENSE(
+                parseFloat(amount), 
+                expenseDesc,
+                // user?.user_metadata?.name // we don't have this effectively loaded here yet
+            )
+        );
       }
     }
 

@@ -20,6 +20,7 @@ import {
   Sun,
   Bell,
 } from "lucide-react";
+import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 
 type House = {
   id: string;
@@ -210,6 +211,12 @@ export default function SettingsPage() {
         user_id: user?.id,
         role: "member",
       });
+
+      // Notify other members
+      if (user) {
+        const userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Alguien";
+        await sendNotification(NOTIFICATION_TEMPLATES.NEW_MEMBER(userName));
+      }
 
       setShowJoinHouse(false);
       setInviteCode("");

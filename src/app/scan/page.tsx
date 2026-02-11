@@ -22,6 +22,7 @@ import {
   Users,
   User,
 } from "lucide-react";
+import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 
 type ReceiptItem = {
   name: string;
@@ -218,14 +219,12 @@ export default function ScanPage() {
 
       // Notify house members if shared expense
       if (expenseType !== "personal") {
-        fetch("/api/push/notify-house", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: "🧾 Nuevo ticket escaneado",
-            body: `${result.store || "Compra"} — $${Math.ceil(result.total)}`,
-          }),
-        }).catch(() => {});
+        await sendNotification(
+            NOTIFICATION_TEMPLATES.NEW_SCAN(
+                result.total,
+                result.store || "Compra"
+            )
+        );
       }
 
       setTimeout(() => {

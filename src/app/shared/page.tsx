@@ -21,6 +21,7 @@ import {
   CreditCard,
   Trash2,
 } from "lucide-react";
+import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 
 type SharedExpense = {
   id: string;
@@ -331,6 +332,13 @@ export default function SharedExpensesPage() {
         monthly_amount: monthlyAmount,
         start_date: new Date().toISOString().split("T")[0],
       });
+
+      await sendNotification(
+          NOTIFICATION_TEMPLATES.NEW_INSTALLMENT(
+              newInstallment.description,
+              totalAmount
+          )
+      );
 
       setNewInstallment({
         description: "",
