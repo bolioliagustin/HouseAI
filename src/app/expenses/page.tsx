@@ -89,6 +89,7 @@ export default function ExpensesPage() {
       // Notify house members if shared expense
       if (isShared) {
         const catInfo = CATEGORIES.find((c) => c.value === category);
+        console.log("Enviando notificación a la casa...");
         fetch("/api/push/notify-house", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -96,7 +97,10 @@ export default function ExpensesPage() {
             title: "💸 Nuevo gasto compartido",
             body: `${catInfo?.icon || "📦"} ${description || category} — $${Math.ceil(parseFloat(amount))}`,
           }),
-        }).catch(() => {});
+        })
+        .then(res => res.json())
+        .then(data => console.log("Resultado notificación:", data))
+        .catch(err => console.error("Error enviando notificación:", err));
       }
     }
 
