@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createClientSSR } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -16,10 +17,23 @@ export async function POST(request: Request) {
         process.env.VAPID_PRIVATE_KEY.trim()
     );
 
-    const supabase = await createClient();
+    // Use Service Role to bypass RLS and fetch other users' subscriptions
+    const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false,
+            },
+        }
+    );
+
+    // Standard client for auth check
+    const supabaseAuth = await createClientSSR();
     const {
         data: { user },
-    } = await supabase.auth.getUser();
+    } = await supabaseAuth.auth.getUser();
 
     if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -29,7 +43,7 @@ export async function POST(request: Request) {
         const { title, body } = await request.json();
 
         // Get user's house
-        const { data: membership } = await supabase
+        const { data: membership } = await supabaseAdmin
             .from("house_members")
             .select("house_id")
             .eq("user_id", user.id)
@@ -40,7 +54,7 @@ export async function POST(request: Request) {
         }
 
         // Get all house members EXCEPT the current user
-        const { data: houseMembers } = await supabase
+        const { data: houseMembers } = await supabaseAdmin
             .from("house_members")
             .select("user_id")
             .eq("house_id", membership.house_id)
@@ -53,7 +67,7 @@ export async function POST(request: Request) {
         const memberIds = houseMembers.map((m) => m.user_id);
 
         // Get push subscriptions for those members
-        const { data: subscriptions } = await supabase
+        const { data: subscriptions } = await supabaseAdmin
             .from("push_subscriptions")
             .select("*")
             .in("user_id", memberIds);
@@ -75,7 +89,7 @@ export async function POST(request: Request) {
                 .sendNotification(pushSubscription, JSON.stringify({ title, body }))
                 .catch((err: any) => {
                     if (err.statusCode === 410 || err.statusCode === 404) {
-                        return supabase.from("push_subscriptions").delete().eq("id", sub.id);
+                        return supabaseAdmin.from("push_subscriptions").delete().eq("id", sub.id);
                     }
                     console.error("Error sending push:", err);
                 });
