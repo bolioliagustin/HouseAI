@@ -227,6 +227,52 @@ export default function ScanPage() {
         );
       }
 
+      // ---------------------------------------------------------
+      // SHOPPING LIST CLOSED LOOP
+      // ---------------------------------------------------------
+      try {
+        if (membership?.house_id) {
+          // 1. Get pending shopping items
+          const { data: shoppingItems } = await supabase
+            .from("shopping_items")
+            .select("id, name")
+            .eq("house_id", membership.house_id)
+            .eq("is_checked", false);
+
+          if (shoppingItems && shoppingItems.length > 0) {
+             // 2. Simple Client-side Fuzzy Match
+             // We normalize strings to lowercase and remove accents/special chars
+             const normalize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+             
+             const scannedNames = result.items.map(i => normalize(i.name));
+             const matchedIds: string[] = [];
+
+             shoppingItems.forEach(item => {
+                 const itemNorm = normalize(item.name);
+                 // Check if any scanned item contains the shopping list item name (or vice versa)
+                 // e.g. List: "Leche" -> Ticket: "Leche Conaprole" (Match)
+                 const isMatch = scannedNames.some(scanned => scanned.includes(itemNorm) || itemNorm.includes(scanned));
+                 if (isMatch) {
+                     matchedIds.push(item.id);
+                 }
+             });
+
+             // 3. Update DB
+             if (matchedIds.length > 0) {
+                 await supabase
+                    .from("shopping_items")
+                    .update({ is_checked: true })
+                    .in("id", matchedIds);
+                 
+                 // Notify current user
+                 alert(`¡Magia! ✨ Se marcaron ${matchedIds.length} items de la lista de compras.`);
+             }
+          }
+        }
+      } catch (err) {
+          console.error("Error checking shopping list:", err);
+      }
+
       setTimeout(() => {
         router.push("/dashboard");
       }, 1500);

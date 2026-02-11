@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Home, Receipt, TrendingUp, Scan, Settings, LogOut, Plus, Users } from "lucide-react";
+import { Home, Receipt, TrendingUp, Scan, Settings, LogOut, Plus, Users, ShoppingCart, ChevronRight } from "lucide-react";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -213,13 +213,6 @@ export default async function DashboardPage() {
             <p className="text-sm text-purple-100 font-medium relative z-10">Escanear ticket</p>
           </Link>
 
-          <Link
-            href="/reports"
-            className="bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl p-5 shadow-lg text-white hover:scale-[1.02] transition-transform group relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 p-3 opacity-10">
-              <TrendingUp className="w-20 h-20" />
-            </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 backdrop-blur-sm group-hover:scale-110 transition-transform">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
@@ -227,6 +220,26 @@ export default async function DashboardPage() {
             <p className="text-sm text-orange-100 font-medium relative z-10">Ver estadísticas</p>
           </Link>
         </div>
+
+        {/* Shopping List Banner */}
+        {houseMember?.house_id && (
+            <Link href="/shopping" className="block transform transition-all hover:scale-[1.02]">
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-5 shadow-lg text-white relative overflow-hidden flex items-center justify-between">
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                            <ShoppingCart className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg">Lista de Compras</h3>
+                            <p className="text-purple-100 text-sm font-medium">No olvides nada del super</p>
+                        </div>
+                    </div>
+                    <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
+                         <ChevronRight className="w-6 h-6 text-white" />
+                    </div>
+                </div>
+            </Link>
+        )}
 
         {/* Shared Balance - only if in a house */}
         {houseMember?.house_id && (
