@@ -213,6 +213,13 @@ export default async function DashboardPage() {
             <p className="text-sm text-purple-100 font-medium relative z-10">Escanear ticket</p>
           </Link>
 
+          <Link
+            href="/reports"
+            className="bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl p-5 shadow-lg text-white hover:scale-[1.02] transition-transform group relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 p-3 opacity-10">
+              <TrendingUp className="w-20 h-20" />
+            </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 backdrop-blur-sm group-hover:scale-110 transition-transform">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
