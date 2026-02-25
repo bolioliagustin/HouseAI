@@ -49,7 +49,7 @@ export async function POST(req: Request) {
         const totalExpensesThisMonth = currentMonthExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
 
         const context = {
-            house_name: membership.houses?.name,
+            house_name: (Array.isArray(membership.houses) ? membership.houses[0] : membership.houses)?.name,
             current_date: now.toLocaleDateString("es-AR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
             stats: {
                 expenses_this_month: totalExpensesThisMonth,
