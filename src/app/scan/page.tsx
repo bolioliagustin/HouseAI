@@ -151,9 +151,9 @@ export default function ScanPage() {
                 
                 // If price diff is > 15%
                 if (item.unit_price > avgPrice * 1.15) {
-                    return { ...item, price_alert: "high", historical_avg: avgPrice };
+                    return { ...item, price_alert: "high" as const, historical_avg: avgPrice };
                 } else if (item.unit_price < avgPrice * 0.85) {
-                    return { ...item, price_alert: "low", historical_avg: avgPrice };
+                    return { ...item, price_alert: "low" as const, historical_avg: avgPrice };
                 }
             }
             return item;
