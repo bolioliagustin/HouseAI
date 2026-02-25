@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Home, Receipt, TrendingUp, Scan, Settings, LogOut, Plus, Users, ShoppingCart, ChevronRight } from "lucide-react";
+import { Home, Receipt, TrendingUp, Scan, Settings, LogOut, Plus, Users, ShoppingCart, ChevronRight, Sparkles } from "lucide-react";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -284,6 +284,16 @@ export default async function DashboardPage() {
           </Link>
         )}
       </main>
+
+      {/* Chat FAB */}
+      {houseMember?.house_id && (
+        <Link
+            href="/chat"
+            className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform z-50"
+        >
+            <Sparkles className="w-7 h-7" />
+        </Link>
+      )}
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700">

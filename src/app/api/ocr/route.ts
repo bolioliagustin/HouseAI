@@ -56,6 +56,7 @@ El JSON debe tener este formato exacto:
   "items": [
     {
       "name": "nombre del producto",
+      "normalized_name": "nombre genérico estandarizado (ej: 'Coca Cola 1.5L' en vez de 'COCA COLA 1.5 DESC')",
       "quantity": 1,
       "unit_price": 0.00,
       "total": 0.00,
