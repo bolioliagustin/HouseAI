@@ -23,6 +23,7 @@
         "react": "^19.0.0",
         "react-chartjs-2": "^5.2.0",
         "react-dom": "^19.0.0",
+        "react-markdown": "^10.1.0",
         "tailwind-merge": "^2.2.0",
         "web-push": "^3.6.7"
     },

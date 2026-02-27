@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import { useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -26,10 +27,13 @@ import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 
 type ReceiptItem = {
   name: string;
+  normalized_name?: string;
   quantity: number;
   unit_price: number;
   total: number;
   category: string;
+  price_alert?: "high" | "low" | null;
+  historical_avg?: number;
 };
 
 type OCRResult = {
@@ -105,12 +109,58 @@ export default function ScanPage() {
         throw new Error(data.error);
       }
 
-      setResult(data);
+      // Check for price anomalies
+      const itemsWithAlerts = await checkPriceAnomalies(data.items);
+      setResult({ ...data, items: itemsWithAlerts });
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function checkPriceAnomalies(items: ReceiptItem[]): Promise<ReceiptItem[]> {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return items;
+
+      // Get house context
+      const { data: membership } = await supabase
+        .from("house_members")
+        .select("house_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (!membership?.house_id) return items;
+
+      const newItems = await Promise.all(items.map(async (item) => {
+          if (!item.normalized_name) return item;
+
+          // Fetch last 5 prices for this product in this house
+          const { data: history } = await supabase
+            .from("receipt_items")
+            .select("unit_price, shared_expenses!inner(house_id)")
+             // @ts-ignore
+            .eq("normalized_name", item.normalized_name)
+            .eq("shared_expenses.house_id", membership.house_id)
+            .order("created_at", { ascending: false })
+            .limit(5);
+
+            if (history && history.length > 0) {
+                const prices = history.map(h => Number(h.unit_price));
+                const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+                
+                // If price diff is > 15%
+                if (item.unit_price > avgPrice * 1.15) {
+                    return { ...item, price_alert: "high" as const, historical_avg: avgPrice };
+                } else if (item.unit_price < avgPrice * 0.85) {
+                    return { ...item, price_alert: "low" as const, historical_avg: avgPrice };
+                }
+            }
+            return item;
+      }));
+
+      return newItems;
   }
 
   function updateItem(index: number, updates: Partial<ReceiptItem>) {
@@ -225,6 +275,52 @@ export default function ScanPage() {
                 result.store || "Compra"
             )
         );
+      }
+
+      // ---------------------------------------------------------
+      // SHOPPING LIST CLOSED LOOP
+      // ---------------------------------------------------------
+      try {
+        if (membership?.house_id) {
+          // 1. Get pending shopping items
+          const { data: shoppingItems } = await supabase
+            .from("shopping_items")
+            .select("id, name")
+            .eq("house_id", membership.house_id)
+            .eq("is_checked", false);
+
+          if (shoppingItems && shoppingItems.length > 0) {
+             // 2. Simple Client-side Fuzzy Match
+             // We normalize strings to lowercase and remove accents/special chars
+             const normalize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+             
+             const scannedNames = result.items.map(i => normalize(i.name));
+             const matchedIds: string[] = [];
+
+             shoppingItems.forEach(item => {
+                 const itemNorm = normalize(item.name);
+                 // Check if any scanned item contains the shopping list item name (or vice versa)
+                 // e.g. List: "Leche" -> Ticket: "Leche Conaprole" (Match)
+                 const isMatch = scannedNames.some(scanned => scanned.includes(itemNorm) || itemNorm.includes(scanned));
+                 if (isMatch) {
+                     matchedIds.push(item.id);
+                 }
+             });
+
+             // 3. Update DB
+             if (matchedIds.length > 0) {
+                 await supabase
+                    .from("shopping_items")
+                    .update({ is_checked: true })
+                    .in("id", matchedIds);
+                 
+                 // Notify current user
+                 alert(`¡Magia! ✨ Se marcaron ${matchedIds.length} items de la lista de compras.`);
+             }
+          }
+        }
+      } catch (err) {
+          console.error("Error checking shopping list:", err);
       }
 
       setTimeout(() => {
@@ -442,6 +538,14 @@ export default function ScanPage() {
                               {item.category}
                             </span>
                           </div>
+                          {item.price_alert && (
+                              <div className={`text-xs flex items-center gap-1 mt-1 ${item.price_alert === "high" ? "text-red-500" : "text-green-500"}`}>
+                                  {item.price_alert === "high" ? "📈" : "📉"} 
+                                  {item.price_alert === "high" ? "Subió " : "Bajó "}
+                                  {Math.round(((item.unit_price - (item.historical_avg || 0)) / (item.historical_avg || 1)) * 100)}%
+                                  (Avg: ${Math.round(item.historical_avg || 0)})
+                              </div>
+                          )}
                         </div>
                         <p className="font-bold text-gray-900 dark:text-white whitespace-nowrap">
                           ${item.total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
