@@ -120,10 +120,33 @@ Asegúrate de que los precios sean números, no strings.`,
         }
         jsonText = jsonText.trim();
 
-        console.log("Parsing JSON response...");
+        // Fix common LLM JSON issues
+        jsonText = jsonText
+            .replace(/,\s*}/g, '}')       // trailing commas before }
+            .replace(/,\s*\]/g, ']')      // trailing commas before ]
+            .replace(/\n/g, ' ')           // newlines inside strings
+            .replace(/\t/g, ' ');          // tabs
 
-        // Parse JSON
-        const result = JSON.parse(jsonText);
+        console.log("Parsing JSON response... (length:", jsonText.length, ")");
+
+        // Parse JSON with fallback
+        let result;
+        try {
+            result = JSON.parse(jsonText);
+        } catch (parseError) {
+            console.error("JSON parse failed, raw text:", jsonText.slice(0, 500));
+            // Try to extract just the items array if full parse fails
+            const itemsMatch = jsonText.match(/"items"\s*:\s*\[[\s\S]*?\]\s*(?=,?\s*"(?:subtotal|total))/);
+            if (itemsMatch) {
+                try {
+                    result = JSON.parse(`{${itemsMatch[0]}, "store": null, "total": 0}`);
+                } catch {
+                    throw parseError; // Give up
+                }
+            } else {
+                throw parseError;
+            }
+        }
 
         console.log("OCR successful, found", result.items?.length || 0, "items");
 
