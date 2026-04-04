@@ -79,7 +79,6 @@ Asegúrate de que los precios sean números, no strings.`,
                         ],
                     },
                 ],
-                max_tokens: 2000,
             }),
         });
 
@@ -134,14 +133,22 @@ Asegúrate de que los precios sean números, no strings.`,
         try {
             result = JSON.parse(jsonText);
         } catch (parseError) {
-            console.error("JSON parse failed, raw text:", jsonText.slice(0, 500));
-            // Try to extract just the items array if full parse fails
-            const itemsMatch = jsonText.match(/"items"\s*:\s*\[[\s\S]*?\]\s*(?=,?\s*"(?:subtotal|total))/);
-            if (itemsMatch) {
+            console.error("JSON parse failed, attempting truncation recovery...");
+            console.error("Raw text (last 200 chars):", jsonText.slice(-200));
+
+            // The model likely got cut off mid-JSON. Try to close it.
+            // Strategy: find the last complete item in the items array
+            const lastCompleteItem = jsonText.lastIndexOf('},');
+            const lastCompleteItem2 = jsonText.lastIndexOf('}  ');
+            const cutPoint = Math.max(lastCompleteItem, lastCompleteItem2);
+
+            if (cutPoint > 0) {
+                const truncated = jsonText.slice(0, cutPoint + 1) + '], "subtotal": 0, "total": 0}';
                 try {
-                    result = JSON.parse(`{${itemsMatch[0]}, "store": null, "total": 0}`);
+                    result = JSON.parse(truncated);
+                    console.log("Truncation recovery successful, got", result.items?.length || 0, "items");
                 } catch {
-                    throw parseError; // Give up
+                    throw parseError;
                 }
             } else {
                 throw parseError;
