@@ -302,6 +302,14 @@ export default function SharedExpensesPage() {
     loadExpenses();
   }
 
+  async function deleteSharedExpense(expenseId: string) {
+    if (confirm("¿Estás seguro de eliminar este gasto? Esta acción eliminará también la división con los miembros.")) {
+      setIsLoading(true);
+      await supabase.from("shared_expenses").delete().eq("id", expenseId);
+      loadExpenses();
+    }
+  }
+
   async function saveInstallment() {
     if (!newInstallment.description || !newInstallment.total_amount) return;
     setIsSavingInstallment(true);
@@ -837,6 +845,19 @@ export default function SharedExpensesPage() {
                           </button>
                         </div>
                       )}
+
+                    {/* Delete option for the owner */}
+                    {expense.paid_by === myUserId && (
+                      <div className="p-4 border-t border-border/40">
+                        <button
+                          onClick={() => deleteSharedExpense(expense.id)}
+                          className="w-full py-3 bg-destructive/10 hover:bg-destructive/20 text-destructive font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                          Eliminar gasto
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
