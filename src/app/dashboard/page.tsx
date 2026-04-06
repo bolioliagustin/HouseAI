@@ -25,6 +25,7 @@ export default async function DashboardPage() {
     recurringIncomesRes,
     houseMemberRes,
     fixedExpensesRes,
+    sharedExpensesRes,
   ] = await Promise.all([
     // Profile
     supabase.from("users").select("*").eq("id", user.id).single(),
@@ -51,6 +52,12 @@ export default async function DashboardPage() {
       .from("fixed_expenses")
       .select("amount, is_shared")
       .eq("user_id", user.id),
+    // Shared Expenses paid by this user this month (tickets + house expenses)
+    supabase
+      .from("shared_expenses")
+      .select("id, total_amount, is_shared")
+      .eq("paid_by", user.id)
+      .gte("date", currentMonthStart),
   ]);
 
   const profile = profileRes.data;
@@ -58,6 +65,7 @@ export default async function DashboardPage() {
   const monthlyIncomes = monthlyIncomesRes.data;
   const recurringIncomes = recurringIncomesRes.data;
   const fixedExpenses = fixedExpensesRes.data;
+  const sharedExpenses = sharedExpensesRes.data || [];
 
   // 2. Dependent Parallel Fetch (only if in a house)
   let memberCountPromise = Promise.resolve(1) as any;
@@ -85,6 +93,18 @@ export default async function DashboardPage() {
       .maybeSingle();
   }
 
+  // Also fetch expense_splits for shared expenses where this user is paid_by
+  // to know which ones were actually split (so we only count our portion)
+  let mySplitsAsPayer: any[] = [];
+  if (sharedExpenses.length > 0) {
+    const sharedExpenseIds = sharedExpenses.map((e: any) => e.id);
+    const { data: splitsData } = await supabase
+      .from("expense_splits")
+      .select("expense_id, amount, user_id")
+      .in("expense_id", sharedExpenseIds);
+    mySplitsAsPayer = splitsData || [];
+  }
+
   const [memberCount, splitsRes, otherMemberRes] = await Promise.all([
     memberCountPromise,
     splitsPromise,
@@ -96,10 +116,24 @@ export default async function DashboardPage() {
   const totalRecurring = recurringIncomes?.reduce((sum, inc) => sum + Number(inc.amount), 0) || 0;
   const totalIncome = totalMonthly + totalRecurring;
 
+  // Fixed expenses: count full amount (is_shared flag on fixed_expenses is just metadata now)
   const totalFixed = fixedExpenses?.reduce((sum, exp) => {
-    const amount = Number(exp.amount);
-    return sum + (exp.is_shared ? amount / memberCount : amount);
+    return sum + Number(exp.amount);
   }, 0) || 0;
+
+  // Shared expenses (tickets + house expenses paid by this user this month)
+  // If a shared_expense has splits → count only our split portion (paid_by portion = our split)
+  // If no splits ("De la casa" without dividing) → count full amount
+  const totalShared = sharedExpenses.reduce((sum: number, exp: any) => {
+    const expSplits = mySplitsAsPayer.filter((s: any) => s.expense_id === exp.id);
+    if (expSplits.length > 0) {
+      // Was split: only count our own split (the one where user_id === user.id)
+      const ourSplit = expSplits.find((s: any) => s.user_id === user.id);
+      return sum + (ourSplit ? Number(ourSplit.amount) : Number(exp.total_amount));
+    }
+    // Not split: count full amount (personal or "De la casa")
+    return sum + Number(exp.total_amount);
+  }, 0);
 
   const splits = splitsRes.data;
   const sharedBalance = splits?.reduce((sum: number, split: any) => sum + Number(split.amount), 0) || 0;
@@ -108,7 +142,7 @@ export default async function DashboardPage() {
   // or keeping it if needed for future expansion.
   // The current UI uses houseMember.houses.name for display.
 
-  const balance = totalIncome - totalFixed;
+  const balance = totalIncome - totalFixed - totalShared;
 
   async function signOut() {
     "use server";
@@ -165,6 +199,12 @@ export default async function DashboardPage() {
               <p className="text-green-100 text-xs">Gastos fijos</p>
               <p className="text-lg font-semibold">
                 ${totalFixed.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div>
+              <p className="text-green-100 text-xs">Gastos del mes</p>
+              <p className="text-lg font-semibold">
+                ${totalShared.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
               </p>
             </div>
           </div>
