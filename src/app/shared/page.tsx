@@ -5,11 +5,8 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import {
-  Home,
+  Home as HomeIcon,
   Receipt,
-  TrendingUp,
-  Scan,
-  Settings,
   ArrowLeft,
   Check,
   Clock,
@@ -89,6 +86,10 @@ export default function SharedExpensesPage() {
     installments: "3",
   });
   const [isSavingInstallment, setIsSavingInstallment] = useState(false);
+  const [houseFixedExpenses, setHouseFixedExpenses] = useState<{id:string;amount:number;category:string;description:string|null;is_shared:boolean}[]>([]);
+  const [showAddFixedForm, setShowAddFixedForm] = useState(false);
+  const [newFixed, setNewFixed] = useState({ description: "", category: "alquiler", amount: "" });
+  const [isSavingFixed, setIsSavingFixed] = useState(false);
 
   const supabase = createClient();
 
@@ -120,7 +121,7 @@ export default function SharedExpensesPage() {
     }
 
     // Parallel independent fetches
-    const [membersRes, sharedExpensesRes, installmentDataRes] = await Promise.all([
+    const [membersRes, sharedExpensesRes, installmentDataRes, fixedSharedRes] = await Promise.all([
       // Get all house members
       supabase
         .from("house_members")
@@ -147,11 +148,21 @@ export default function SharedExpensesPage() {
         .select("*")
         .eq("house_id", membership.house_id)
         .order("created_at", { ascending: false }),
+
+      // Get house fixed expenses for this user
+      supabase
+        .from("fixed_expenses")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("is_shared", true)
+        .order("created_at", { ascending: false }),
     ]);
 
     const members = membersRes.data;
     const sharedExpenses = sharedExpensesRes.data;
     const installmentData = installmentDataRes.data;
+    const fixedSharedData = fixedSharedRes.data || [];
+    setHouseFixedExpenses(fixedSharedData);
 
     setMemberCount(members?.length || 1);
 
@@ -199,13 +210,30 @@ export default function SharedExpensesPage() {
         });
       });
 
+      // Fix: Calculate per-member spending using real splits
       sharedExpenses.forEach((exp) => {
-        const current = spendingMap.get(exp.paid_by);
-        if (current) {
-          spendingMap.set(exp.paid_by, {
-            ...current,
-            total: current.total + Number(exp.total_amount),
+        const splits = (exp.expense_splits as { amount: number; is_paid: boolean; user_id: string }[]) || [];
+
+        if (splits.length > 0) {
+          // Gasto dividido: cada miembro acumula su split
+          splits.forEach((split) => {
+            const memberEntry = spendingMap.get(split.user_id);
+            if (memberEntry) {
+              spendingMap.set(split.user_id, {
+                ...memberEntry,
+                total: memberEntry.total + Number(split.amount),
+              });
+            }
           });
+        } else {
+          // Gasto sin dividir: suma el total al que pagó
+          const current = spendingMap.get(exp.paid_by);
+          if (current) {
+            spendingMap.set(exp.paid_by, {
+              ...current,
+              total: current.total + Number(exp.total_amount),
+            });
+          }
         }
       });
 
@@ -370,6 +398,36 @@ export default function SharedExpensesPage() {
     loadExpenses();
   }
 
+  async function saveHouseFixedExpense() {
+    if (!newFixed.description || !newFixed.amount) return;
+    setIsSavingFixed(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user");
+      await supabase.from("fixed_expenses").insert({
+        user_id: user.id,
+        amount: parseFloat(newFixed.amount),
+        category: newFixed.category,
+        description: newFixed.description,
+        is_shared: true,
+      });
+      setNewFixed({ description: "", category: "alquiler", amount: "" });
+      setShowAddFixedForm(false);
+      loadExpenses();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSavingFixed(false);
+    }
+  }
+
+  async function deleteHouseFixedExpense(id: string) {
+    if (confirm("¿Eliminar este gasto fijo de la casa?")) {
+      await supabase.from("fixed_expenses").delete().eq("id", id);
+      loadExpenses();
+    }
+  }
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("es-AR", {
       day: "numeric",
@@ -400,7 +458,132 @@ export default function SharedExpensesPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-                {/* Installments Section */}
+
+        {/* House Fixed Expenses Section */}
+        <div className="bg-card rounded-[24px] shadow-sm border border-border/40 overflow-hidden transition-all hover:shadow-md">
+          <div className="p-5 border-b border-border/40 flex items-center justify-between bg-muted/10">
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 p-2 rounded-xl">
+                <HomeIcon className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground">Gastos Fijos Mensuales</h3>
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Alquiler, expensas, servicios…</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowAddFixedForm(!showAddFixedForm)}
+              className="p-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-colors"
+            >
+              {showAddFixedForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+            </button>
+          </div>
+
+          {/* Add Fixed Form */}
+          {showAddFixedForm && (
+            <div className="p-5 bg-muted/5 border-b border-border/40 space-y-4">
+              <input
+                type="text"
+                placeholder="Descripción (ej: Alquiler, Expensas)"
+                value={newFixed.description}
+                onChange={(e) => setNewFixed({ ...newFixed, description: e.target.value })}
+                className="w-full px-5 py-4 rounded-[16px] border border-border/40 bg-card shadow-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block ml-1">Monto total</label>
+                  <input
+                    type="number"
+                    placeholder="$100.000"
+                    value={newFixed.amount}
+                    onChange={(e) => setNewFixed({ ...newFixed, amount: e.target.value })}
+                    className="w-full px-5 py-4 rounded-[16px] border border-border/40 shadow-sm bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block ml-1">Categoría</label>
+                  <select
+                    value={newFixed.category}
+                    onChange={(e) => setNewFixed({ ...newFixed, category: e.target.value })}
+                    className="w-full px-5 py-4 rounded-[16px] border border-border/40 shadow-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                  >
+                    {["alquiler","expensas","servicios","internet","limpieza","otros"].map((cat) => (
+                      <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              {/* Preview split */}
+              {newFixed.amount && memberCount > 1 && (
+                <div className="bg-card shadow-sm border border-border/40 rounded-[16px] p-4 text-sm">
+                  <div className="flex justify-between text-muted-foreground font-medium">
+                    <span>Monto total</span>
+                    <span className="font-bold text-foreground">
+                      ${parseFloat(newFixed.amount).toLocaleString("es-AR")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-muted-foreground font-medium mt-2 pt-2 border-t border-border/40">
+                    <span>Tu parte por mes ({memberCount} personas)</span>
+                    <span className="font-bold text-primary text-base">
+                      ${(parseFloat(newFixed.amount) / memberCount).toLocaleString("es-AR", { minimumFractionDigits: 0 })}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={saveHouseFixedExpense}
+                disabled={isSavingFixed || !newFixed.description || !newFixed.amount}
+                className="w-full py-4 mt-2 bg-primary hover:bg-primary/90 shadow-sm disabled:opacity-50 text-primary-foreground font-bold rounded-[16px] transition-colors flex items-center justify-center gap-2"
+              >
+                {isSavingFixed ? "Guardando..." : <><Plus className="w-5 h-5" /> Agregar gasto fijo</>}
+              </button>
+            </div>
+          )}
+
+          {/* Fixed Expenses List */}
+          {houseFixedExpenses.length === 0 && !showAddFixedForm ? (
+            <div className="p-8 text-center bg-muted/5">
+              <HomeIcon className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground font-medium">No hay gastos fijos de la casa</p>
+              <p className="text-xs text-muted-foreground mt-1">Agregá el alquiler, expensas u otros gastos mensuales</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/40">
+              {houseFixedExpenses.map((fe) => {
+                const perPerson = memberCount > 1 ? Number(fe.amount) / memberCount : null;
+                return (
+                  <div key={fe.id} className="p-5 flex items-center gap-4 hover:bg-muted/5 transition-colors group">
+                    <div className="w-12 h-12 bg-primary/10 rounded-[16px] flex items-center justify-center shrink-0">
+                      <HomeIcon className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-foreground truncate">{fe.description || fe.category}</p>
+                      <p className="text-xs font-medium text-muted-foreground mt-0.5 uppercase tracking-wider">{fe.category}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-base font-bold text-foreground">
+                        ${Number(fe.amount).toLocaleString("es-AR")}
+                      </p>
+                      {perPerson !== null && (
+                        <p className="text-xs font-medium text-primary">
+                          ${perPerson.toLocaleString("es-AR", { minimumFractionDigits: 0 })}/persona
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => deleteHouseFixedExpense(fe.id)}
+                      className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Installments Section */}
         <div className="bg-card rounded-[24px] shadow-sm border border-border/40 overflow-hidden transition-all hover:shadow-md">
           <div className="p-5 border-b border-border/40 flex items-center justify-between bg-muted/10">
             <div className="flex items-center gap-2">
@@ -757,7 +940,7 @@ export default function SharedExpensesPage() {
                     }`}
                   >
                     {!expense.is_split ? (
-                      <Home className="w-6 h-6" />
+                      <HomeIcon className="w-6 h-6" />
                     ) : expense.paid_by === myUserId ? (
                       <Receipt className="w-6 h-6" />
                     ) : expense.is_paid ? (
