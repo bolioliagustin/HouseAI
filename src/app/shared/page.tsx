@@ -19,6 +19,7 @@ import {
   CreditCard,
   Trash2,
   Scan,
+  Search,
 } from "lucide-react";
 import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 import { BottomNav } from "@/components/BottomNav";
@@ -95,6 +96,10 @@ export default function SharedExpensesPage() {
   const [showAddManualModal, setShowAddManualModal] = useState(false);
   const [newManualExpense, setNewManualExpense] = useState({ description: "", amount: "", category: "hogar" });
   const [isSavingManual, setIsSavingManual] = useState(false);
+
+  // Filters State
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "paid">("all");
 
   const supabase = createClient();
 
@@ -212,14 +217,16 @@ export default function SharedExpensesPage() {
         const splits = (exp.expense_splits as { amount: number; is_paid: boolean; user_id: string }[]) || [];
 
         if (splits.length > 0) {
-          // Gasto dividido: cada miembro acumula su split al gasto total
+          // Gasto dividido: cada miembro acumula su split al gasto total solo si fue pagado
           splits.forEach((split) => {
-            const memberEntry = spendingMap.get(split.user_id);
-            if (memberEntry) {
-              spendingMap.set(split.user_id, {
-                ...memberEntry,
-                total: memberEntry.total + Number(split.amount),
-              });
+            if (split.is_paid) {
+              const memberEntry = spendingMap.get(split.user_id);
+              if (memberEntry) {
+                spendingMap.set(split.user_id, {
+                  ...memberEntry,
+                  total: memberEntry.total + Number(split.amount),
+                });
+              }
             }
           });
         } else {
@@ -897,19 +904,50 @@ export default function SharedExpensesPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-center justify-between mb-4 px-2">
-              <h3 className="font-bold text-foreground">
-                Gastos recientes
-              </h3>
-              <button
-                onClick={() => setShowAddManualModal(true)}
-                className="text-[10px] font-bold text-primary uppercase tracking-wider flex items-center gap-1 hover:text-primary/80 transition-colors bg-primary/10 px-3 py-1.5 rounded-full"
-              >
-                <Plus className="w-3 h-3" />
-                Agregar Gasto
-              </button>
+            <div className="flex flex-col gap-3 mb-4 px-2">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-foreground">
+                  Gastos recientes
+                </h3>
+                <button
+                  onClick={() => setShowAddManualModal(true)}
+                  className="text-[10px] font-bold text-primary uppercase tracking-wider flex items-center gap-1 hover:text-primary/80 transition-colors bg-primary/10 px-3 py-1.5 rounded-full shrink-0"
+                >
+                  <Plus className="w-3 h-3" />
+                  Agregar Gasto
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input 
+                    type="text" 
+                    placeholder="Buscar gastos..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 bg-card border border-border/40 shadow-sm rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-foreground placeholder:-muted-foreground"
+                  />
+                </div>
+                <select 
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as any)}
+                  className="px-3 py-2 bg-card border border-border/40 shadow-sm rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-semibold text-muted-foreground"
+                >
+                  <option value="all">Todos</option>
+                  <option value="pending">Pendientes</option>
+                  <option value="paid">Pagados</option>
+                </select>
+              </div>
             </div>
-            {expenses.map((expense) => (
+
+            {expenses.filter(exp => {
+                const matchesSearch = (exp.description || exp.category).toLowerCase().includes(searchTerm.toLowerCase());
+                if (!matchesSearch) return false;
+                if (filterStatus === "pending") return exp.is_split && !exp.is_paid;
+                if (filterStatus === "paid") return exp.is_paid;
+                return true;
+            }).map((expense) => (
               <div
                 key={expense.id}
                 className="bg-card rounded-[24px] shadow-sm border border-border/40 overflow-hidden transition-all hover:shadow-md"
