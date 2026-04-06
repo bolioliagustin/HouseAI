@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import {
-  Home,
+  Home as HomeIcon,
   Receipt,
   TrendingUp,
   Scan,
@@ -16,6 +16,8 @@ import {
   Save,
   X,
   Edit2,
+  Users,
+  User,
 } from "lucide-react";
 import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 
@@ -51,7 +53,7 @@ export default function ExpensesPage() {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("otros");
   const [description, setDescription] = useState("");
-  const [isShared, setIsShared] = useState(false);
+  const [expenseType, setExpenseType] = useState<"personal" | "house" | "split">("personal");
 
   const supabase = createClient();
 
@@ -73,34 +75,74 @@ export default function ExpensesPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
     const expenseData = {
       amount: parseFloat(amount),
       category,
       description: description || null,
-      is_shared: isShared,
+      is_shared: expenseType !== "personal",
     };
 
     if (editingId) {
       await supabase.from("fixed_expenses").update(expenseData).eq("id", editingId);
     } else {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      await supabase.from("fixed_expenses").insert({ ...expenseData, user_id: user?.id });
+      await supabase.from("fixed_expenses").insert({ ...expenseData, user_id: user.id });
+    }
 
-      // Notify house members if shared expense
-      if (isShared) {
-        // We don't have user name readily available here without extra fetch, 
-        // so we'll omit it for now or rely on the category icon/desc
+    // If "house" or "split", also create a shared_expense record
+    if (expenseType !== "personal" && !editingId) {
+      const { data: membership } = await supabase
+        .from("house_members")
+        .select("house_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (membership?.house_id) {
         const catInfo = CATEGORIES.find((c) => c.value === category);
-        const expenseDesc = `${catInfo?.icon || "📦"} ${description || category}`;
-        
+        const expenseDesc = `${catInfo?.icon || "\uD83D\uDCE6"} ${description || catInfo?.label || category}`;
+
+        const { data: sharedExpense } = await supabase
+          .from("shared_expenses")
+          .insert({
+            house_id: membership.house_id,
+            paid_by: user.id,
+            total_amount: parseFloat(amount),
+            category: category,
+            description: expenseDesc,
+            date: new Date().toISOString().split("T")[0],
+            is_shared: true,
+          })
+          .select()
+          .single();
+
+        // If "split", create splits for all house members
+        if (expenseType === "split" && sharedExpense) {
+          const { data: members } = await supabase
+            .from("house_members")
+            .select("user_id")
+            .eq("house_id", membership.house_id);
+
+          if (members && members.length > 0) {
+            const splitAmount = parseFloat(amount) / members.length;
+            const splits = members.map((member) => ({
+              expense_id: sharedExpense.id,
+              user_id: member.user_id,
+              amount: splitAmount,
+              is_paid: member.user_id === user.id,
+            }));
+            await supabase.from("expense_splits").insert(splits);
+          }
+        }
+
         await sendNotification(
-            NOTIFICATION_TEMPLATES.NEW_EXPENSE(
-                parseFloat(amount), 
-                expenseDesc,
-                // user?.user_metadata?.name // we don't have this effectively loaded here yet
-            )
+          NOTIFICATION_TEMPLATES.NEW_EXPENSE(
+            parseFloat(amount),
+            expenseDesc,
+          )
         );
       }
     }
@@ -121,7 +163,7 @@ export default function ExpensesPage() {
     setAmount(expense.amount.toString());
     setCategory(expense.category);
     setDescription(expense.description || "");
-    setIsShared(expense.is_shared);
+    setExpenseType(expense.is_shared ? "house" : "personal");
     setShowForm(true);
   }
 
@@ -131,7 +173,7 @@ export default function ExpensesPage() {
     setAmount("");
     setCategory("otros");
     setDescription("");
-    setIsShared(false);
+    setExpenseType("personal");
   }
 
   const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
@@ -236,21 +278,67 @@ export default function ExpensesPage() {
                     />
                   </div>
 
-                  {/* Is Shared */}
-                  <label className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={isShared}
-                      onChange={(e) => setIsShared(e.target.checked)}
-                      className="w-5 h-5 text-green-500 rounded focus:ring-green-500"
-                    />
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Gasto compartido</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Se dividirá con tu compañero
-                      </p>
+                  {/* Expense Type Selector */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Tipo de gasto
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setExpenseType("personal")}
+                        className={`p-3 rounded-xl border-2 text-center transition-all ${
+                          expenseType === "personal"
+                            ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                        }`}
+                      >
+                        <User className={`w-5 h-5 mx-auto mb-1 ${
+                          expenseType === "personal" ? "text-green-600" : "text-gray-400"
+                        }`} />
+                        <p className={`text-xs font-medium ${
+                          expenseType === "personal" ? "text-green-700 dark:text-green-400" : "text-gray-500"
+                        }`}>Personal</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setExpenseType("house")}
+                        className={`p-3 rounded-xl border-2 text-center transition-all ${
+                          expenseType === "house"
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                        }`}
+                      >
+                        <HomeIcon className={`w-5 h-5 mx-auto mb-1 ${
+                          expenseType === "house" ? "text-blue-600" : "text-gray-400"
+                        }`} />
+                        <p className={`text-xs font-medium ${
+                          expenseType === "house" ? "text-blue-700 dark:text-blue-400" : "text-gray-500"
+                        }`}>De la casa</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setExpenseType("split")}
+                        className={`p-3 rounded-xl border-2 text-center transition-all ${
+                          expenseType === "split"
+                            ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
+                            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                        }`}
+                      >
+                        <Users className={`w-5 h-5 mx-auto mb-1 ${
+                          expenseType === "split" ? "text-purple-600" : "text-gray-400"
+                        }`} />
+                        <p className={`text-xs font-medium ${
+                          expenseType === "split" ? "text-purple-700 dark:text-purple-400" : "text-gray-500"
+                        }`}>Dividido</p>
+                      </button>
                     </div>
-                  </label>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 px-1">
+                      {expenseType === "personal" && "Solo aparece en tus gastos"}
+                      {expenseType === "house" && "Se registra como gasto de la casa, sin dividir"}
+                      {expenseType === "split" && "Se divide entre los miembros de la casa"}
+                    </p>
+                  </div>
 
                   {/* Submit */}
                   <button
@@ -338,7 +426,7 @@ export default function ExpensesPage() {
             href="/dashboard"
             className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           >
-            <Home className="w-6 h-6" />
+            <HomeIcon className="w-6 h-6" />
             <span className="text-xs">Inicio</span>
           </Link>
           <Link
