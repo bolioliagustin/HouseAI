@@ -55,7 +55,7 @@ export default async function DashboardPage() {
     // Shared Expenses paid by this user this month (tickets + house expenses)
     supabase
       .from("shared_expenses")
-      .select("id, total_amount, is_shared")
+      .select("id, total_amount, is_shared, house_id")
       .eq("paid_by", user.id)
       .gte("date", currentMonthStart),
   ]);
@@ -121,19 +121,24 @@ export default async function DashboardPage() {
     return sum + Number(exp.amount);
   }, 0) || 0;
 
-  // Shared expenses (tickets + house expenses paid by this user this month)
-  // If a shared_expense has splits → count only our split portion (paid_by portion = our split)
-  // If no splits ("De la casa" without dividing) → count full amount
-  const totalShared = sharedExpenses.reduce((sum: number, exp: any) => {
+  // Shared expenses split into personal (no house_id) vs house (has house_id)
+  const sharedPersonal = sharedExpenses.filter((e: any) => !e.house_id);
+  const sharedHouse = sharedExpenses.filter((e: any) => !!e.house_id);
+
+  const totalSharedPersonal = sharedPersonal.reduce((sum: number, exp: any) => {
+    return sum + Number(exp.total_amount);
+  }, 0);
+
+  const totalSharedHouse = sharedHouse.reduce((sum: number, exp: any) => {
     const expSplits = mySplitsAsPayer.filter((s: any) => s.expense_id === exp.id);
     if (expSplits.length > 0) {
-      // Was split: only count our own split (the one where user_id === user.id)
       const ourSplit = expSplits.find((s: any) => s.user_id === user.id);
       return sum + (ourSplit ? Number(ourSplit.amount) : Number(exp.total_amount));
     }
-    // Not split: count full amount (personal or "De la casa")
     return sum + Number(exp.total_amount);
   }, 0);
+
+  const totalShared = totalSharedPersonal + totalSharedHouse;
 
   const splits = splitsRes.data;
   const sharedBalance = splits?.reduce((sum: number, split: any) => sum + Number(split.amount), 0) || 0;
