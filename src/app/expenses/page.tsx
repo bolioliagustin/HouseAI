@@ -85,7 +85,7 @@ export default function ExpensesPage() {
       amount: parseFloat(amount),
       category,
       description: description || null,
-      is_shared: expenseType !== "personal",
+      is_shared: false,
     };
 
     if (editingId) {
@@ -110,7 +110,6 @@ export default function ExpensesPage() {
     setAmount(expense.amount.toString());
     setCategory(expense.category);
     setDescription(expense.description || "");
-    setExpenseType(expense.is_shared ? "house" : "personal");
     setShowForm(true);
   }
 
@@ -138,7 +137,7 @@ export default function ExpensesPage() {
             >
               <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </Link>
-            <h1 className="text-xl font-bold tracking-tight text-foreground">Gastos Fijos</h1>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Suscripciones y Gastos Fijos</h1>
           </div>
           <button
             onClick={() => setShowForm(true)}
@@ -223,68 +222,6 @@ export default function ExpensesPage() {
                       placeholder="Ej: Alquiler departamento"
                       className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                     />
-                  </div>
-
-                  {/* Expense Type Selector */}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                       Tipo de gasto
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setExpenseType("personal")}
-                        className={`p-3 rounded-xl border-2 text-center transition-all ${
-                          expenseType === "personal"
-                            ? "border-primary bg-primary/5"
-                            : "border-border/50 bg-card hover:bg-muted/50"
-                        }`}
-                      >
-                        <User className={`w-5 h-5 mx-auto mb-1 ${
-                          expenseType === "personal" ? "text-primary" : "text-muted-foreground"
-                        }`} />
-                        <p className={`text-xs font-medium ${
-                          expenseType === "personal" ? "text-primary" : "text-muted-foreground"
-                        }`}>Personal</p>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setExpenseType("house")}
-                        className={`p-3 rounded-xl border-2 text-center transition-all ${
-                          expenseType === "house"
-                            ? "border-secondary bg-secondary/5"
-                            : "border-border/50 bg-card hover:bg-muted/50"
-                        }`}
-                      >
-                        <HomeIcon className={`w-5 h-5 mx-auto mb-1 ${
-                          expenseType === "house" ? "text-secondary" : "text-muted-foreground"
-                        }`} />
-                        <p className={`text-xs font-medium ${
-                          expenseType === "house" ? "text-secondary" : "text-muted-foreground"
-                        }`}>De la casa</p>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setExpenseType("split")}
-                        className={`p-3 rounded-xl border-2 text-center transition-all ${
-                          expenseType === "split"
-                            ? "border-accent bg-accent/5"
-                            : "border-border/50 bg-card hover:bg-muted/50"
-                        }`}
-                      >
-                        <Users className={`w-5 h-5 mx-auto mb-1 ${
-                          expenseType === "split" ? "text-accent" : "text-muted-foreground"
-                        }`} />
-                        <p className={`text-xs font-medium ${
-                          expenseType === "split" ? "text-accent" : "text-muted-foreground"
-                        }`}>Dividido</p>
-                      </button>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2 px-1">
-                      {expenseType === "personal" && "Solo aparece en tus gastos"}
-                      {expenseType === "house" && "Se registra como gasto de la casa, sin dividir"}
-                      {expenseType === "split" && "Se divide entre los miembros de la casa"}
-                    </p>
                   </div>
 
                   {/* Submit */}

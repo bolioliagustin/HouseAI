@@ -720,9 +720,18 @@ export default function SharedExpensesPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            <h3 className="text-xs uppercase tracking-wider font-bold text-muted-foreground px-1 mt-6">
-              Gastos recientes
-            </h3>
+            <div className="flex items-center justify-between mt-6 px-1">
+              <h3 className="text-xs uppercase tracking-wider font-bold text-muted-foreground">
+                Gastos recientes
+              </h3>
+              <Link
+                href="/scan"
+                className="text-[10px] font-bold text-primary uppercase tracking-wider flex items-center gap-1 hover:text-primary/80 transition-colors bg-primary/10 px-3 py-1.5 rounded-full"
+              >
+                <Plus className="w-3 h-3" />
+                Agregar Gasto
+              </Link>
+            </div>
             {expenses.map((expense) => (
               <div
                 key={expense.id}
