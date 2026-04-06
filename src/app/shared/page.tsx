@@ -18,6 +18,7 @@ import {
   X,
   CreditCard,
   Trash2,
+  Scan,
 } from "lucide-react";
 import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 import { BottomNav } from "@/components/BottomNav";
@@ -87,6 +88,11 @@ export default function SharedExpensesPage() {
   });
   const [isSavingInstallment, setIsSavingInstallment] = useState(false);
   const [houseFixedExpenses, setHouseFixedExpenses] = useState<{id:string;amount:number;category:string;description:string|null;user_id:string}[]>([]);
+
+  // Manual Shared Expense State
+  const [showAddManualModal, setShowAddManualModal] = useState(false);
+  const [newManualExpense, setNewManualExpense] = useState({ description: "", amount: "", category: "hogar" });
+  const [isSavingManual, setIsSavingManual] = useState(false);
 
   const supabase = createClient();
 
@@ -223,15 +229,6 @@ export default function SharedExpensesPage() {
             });
           }
         }
-      });
-
-      // Include house fixed expenses: each contributes amount/memberCount to ALL members
-      const numMembers = members.length || 1;
-      (fixedSharedData || []).forEach((fe: any) => {
-        const perPerson = Number(fe.amount) / numMembers;
-        spendingMap.forEach((entry, uid) => {
-          spendingMap.set(uid, { ...entry, total: entry.total + perPerson });
-        });
       });
 
       setMemberSpending(
@@ -393,6 +390,78 @@ export default function SharedExpensesPage() {
   async function deleteInstallment(id: string) {
     await supabase.from("installment_expenses").delete().eq("id", id);
     loadExpenses();
+  }
+
+  async function saveManualExpense() {
+    if (!newManualExpense.description || !newManualExpense.amount) return;
+    setIsSavingManual(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user");
+
+      // Get house context
+      const { data: membership } = await supabase
+        .from("house_members")
+        .select("house_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!membership?.house_id) throw new Error("No house");
+
+      const amount = parseFloat(newManualExpense.amount);
+
+      // 1. Create shared_expense
+      const { data: expense, error: expError } = await supabase
+        .from("shared_expenses")
+        .insert({
+          house_id: membership.house_id,
+          paid_by: user.id,
+          total_amount: amount,
+          category: newManualExpense.category,
+          description: newManualExpense.description,
+          date: new Date().toISOString().split("T")[0],
+          is_shared: true,
+        })
+        .select()
+        .single();
+
+      if (expError) throw expError;
+
+      // 2. Create one receipt item
+      await supabase.from("receipt_items").insert({
+        expense_id: expense.id,
+        name: newManualExpense.description,
+        quantity: 1,
+        unit_price: amount,
+        total: amount,
+        category: newManualExpense.category,
+      });
+
+      // 3. Create splits
+      const { data: members } = await supabase
+        .from("house_members")
+        .select("user_id")
+        .eq("house_id", membership.house_id);
+
+      if (members && members.length > 0) {
+        const splitAmount = amount / members.length;
+        const splits = members.map((m) => ({
+          expense_id: expense.id,
+          user_id: m.user_id,
+          amount: splitAmount,
+          is_paid: m.user_id === user.id,
+        }));
+        await supabase.from("expense_splits").insert(splits);
+      }
+
+      setNewManualExpense({ description: "", amount: "", category: "hogar" });
+      setShowAddManualModal(false);
+      loadExpenses();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSavingManual(false);
+    }
   }
 
   const formatDate = (dateStr: string) => {
@@ -795,17 +864,17 @@ export default function SharedExpensesPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-center justify-between mt-6 px-1">
-              <h3 className="text-xs uppercase tracking-wider font-bold text-muted-foreground">
+            <div className="flex items-center justify-between mb-4 px-2">
+              <h3 className="font-bold text-foreground">
                 Gastos recientes
               </h3>
-              <Link
-                href="/scan"
+              <button
+                onClick={() => setShowAddManualModal(true)}
                 className="text-[10px] font-bold text-primary uppercase tracking-wider flex items-center gap-1 hover:text-primary/80 transition-colors bg-primary/10 px-3 py-1.5 rounded-full"
               >
                 <Plus className="w-3 h-3" />
                 Agregar Gasto
-              </Link>
+              </button>
             </div>
             {expenses.map((expense) => (
               <div
@@ -949,6 +1018,98 @@ export default function SharedExpensesPage() {
           </div>
         )}
       </main>
+
+      {/* Manual Add Expense Modal */}
+      {showAddManualModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-4">
+          <div className="bg-card rounded-t-[32px] sm:rounded-[24px] w-full max-w-md shadow-2xl border border-border/10 overflow-hidden transform transition-all animate-in slide-in-from-bottom flex flex-col max-h-[85vh]">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">Agregar gasto</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Se dividirá equitativamente</p>
+                </div>
+                <button onClick={() => setShowAddManualModal(false)} className="p-2 hover:bg-muted rounded-full transition-colors">
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
+
+              {/* Link to Scan for groceries */}
+              <Link
+                href="/scan"
+                className="mb-6 flex flex-col justify-center items-center gap-2 p-4 rounded-xl border border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-colors"
+                onClick={() => setShowAddManualModal(false)}
+              >
+                <Scan className="w-6 h-6 text-primary" />
+                <div className="text-center">
+                  <p className="text-sm font-bold text-primary">¿Tenés un ticket de súper?</p>
+                  <p className="text-xs text-primary/80">Escanear ticket con IA (recomendado)</p>
+                </div>
+              </Link>
+
+              <div className="flex items-center gap-4 mb-6">
+                <div className="h-px bg-border flex-1"></div>
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">o carga manual</span>
+                <div className="h-px bg-border flex-1"></div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block ml-1">Descripción</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Expensas, Factura internet..."
+                    value={newManualExpense.description}
+                    onChange={(e) => setNewManualExpense({ ...newManualExpense, description: e.target.value })}
+                    className="w-full px-5 py-4 rounded-[16px] border border-border/40 bg-muted/20 shadow-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block ml-1">Monto total</label>
+                    <input
+                      type="number"
+                      placeholder="$0.00"
+                      value={newManualExpense.amount}
+                      onChange={(e) => setNewManualExpense({ ...newManualExpense, amount: e.target.value })}
+                      className="w-full px-5 py-4 rounded-[16px] border border-border/40 bg-muted/20 shadow-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block ml-1">Categoría</label>
+                    <select
+                      value={newManualExpense.category}
+                      onChange={(e) => setNewManualExpense({ ...newManualExpense, category: e.target.value })}
+                      className="w-full px-5 py-4 rounded-[16px] border border-border/40 bg-muted/20 shadow-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all text-sm"
+                    >
+                      {["hogar","supermercado","servicios","streaming","otros"].map((cat) => (
+                        <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {newManualExpense.amount && memberCount > 1 && (
+                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex justify-between items-center mt-2">
+                    <span className="text-xs font-medium text-muted-foreground">Tu parte ({memberCount} pers.)</span>
+                    <span className="text-sm font-bold text-primary">
+                      ${(parseFloat(newManualExpense.amount) / memberCount).toLocaleString("es-AR", { maximumFractionDigits: 0 })}
+                    </span>
+                  </div>
+                )}
+                
+                <button
+                  onClick={saveManualExpense}
+                  disabled={isSavingManual || !newManualExpense.amount || !newManualExpense.description}
+                  className="w-full py-4 mt-4 bg-foreground hover:bg-foreground/90 disabled:opacity-50 text-background font-bold rounded-[16px] transition-colors flex items-center justify-center gap-2"
+                >
+                  {isSavingManual ? "Guardando..." : "Agregar gasto compartido"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav />
     </div>
