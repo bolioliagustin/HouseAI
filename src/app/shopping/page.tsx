@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   Loader2,
 } from "lucide-react";
+import { BottomNav } from "@/components/BottomNav";
 
 type ShoppingItem = {
   id: string;
@@ -133,18 +134,18 @@ export default function ShoppingPage() {
   const checkedItems = items.filter((i) => i.is_checked);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 pb-24">
+    <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <header className="bg-background/90 backdrop-blur-lg border-b border-border/40 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
           </Link>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <ShoppingCart className="w-6 h-6 text-purple-600" />
+          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <ShoppingCart className="w-6 h-6 text-primary" />
             Lista de Compras
           </h1>
         </div>
@@ -157,13 +158,13 @@ export default function ShoppingPage() {
             type="text"
             value={newItem}
             onChange={(e) => setNewItem(e.target.value)}
-            placeholder="¿Qué falta comprar? (ej: Leche 1L)"
-            className="w-full pl-5 pr-14 py-4 rounded-2xl border-none shadow-lg focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 text-lg"
+            placeholder="¿Qué falta comprar?"
+            className="w-full pl-5 pr-14 py-4 rounded-[24px] border border-border/40 shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent bg-card text-foreground placeholder-muted-foreground outline-none transition-all"
           />
           <button
             type="submit"
             disabled={!newItem.trim() || isAdding}
-            className="absolute right-2 top-2 bottom-2 aspect-square bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl flex items-center justify-center transition-colors"
+            className="absolute right-2 top-2 bottom-2 aspect-square bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground rounded-[20px] flex items-center justify-center transition-colors shadow-sm"
           >
             {isAdding ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-6 h-6" />}
           </button>
@@ -172,38 +173,40 @@ export default function ShoppingPage() {
         {/* Loading */}
         {isLoading && (
             <div className="text-center py-10">
-                <Loader2 className="w-8 h-8 text-purple-400 animate-spin mx-auto" />
+                <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
             </div>
         )}
 
         {/* Empty State */}
         {!isLoading && items.length === 0 && (
-            <div className="text-center py-12 opacity-50">
-                <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-gray-500 text-lg">Tu lista está vacía</p>
-                <p className="text-sm text-gray-400">Agrega cosas para que no se olviden</p>
+            <div className="bg-card border border-border/40 rounded-2xl p-12 text-center shadow-sm">
+                <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <ShoppingCart className="w-10 h-10 text-muted-foreground" />
+                </div>
+                <p className="text-foreground font-semibold text-lg mb-1">Tu lista está vacía</p>
+                <p className="text-sm font-medium text-muted-foreground">Agregá cosas para que no se te olviden</p>
             </div>
         )}
 
         {/* Pending Items */}
         {pendingItems.length > 0 && (
           <div className="space-y-3">
-            <h2 className="font-semibold text-gray-900 dark:text-white px-1">Pendientes ({pendingItems.length})</h2>
+            <h2 className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-3 px-1 mt-2">Pendientes ({pendingItems.length})</h2>
             {pendingItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 group"
+                className="bg-card rounded-[20px] p-4 shadow-sm border border-border/40 flex items-center gap-4 group hover:shadow-md transition-all"
               >
                 <button
                   onClick={() => toggleCheck(item.id, item.is_checked)}
-                  className="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 hover:border-purple-500 transition-colors flex items-center justify-center shrink-0"
+                  className="w-6 h-6 rounded-full border-2 border-border/80 hover:border-primary transition-colors flex items-center justify-center shrink-0"
                 >
                   {/* Unchecked circle */}
                 </button>
-                <span className="flex-1 text-lg text-gray-900 dark:text-white font-medium">{item.name}</span>
+                <span className="flex-1 text-base text-foreground font-semibold">{item.name}</span>
                 <button 
                     onClick={() => deleteItem(item.id)}
-                    className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all md:opacity-0 md:group-hover:opacity-100"
                 >
                     <Trash2 className="w-5 h-5" />
                 </button>
@@ -214,31 +217,32 @@ export default function ShoppingPage() {
 
         {/* Checked Items */}
         {checkedItems.length > 0 && (
-          <div className="space-y-3 opacity-60">
-            <h2 className="font-semibold text-gray-900 dark:text-white px-1 mt-8">Comprados</h2>
+          <div className="space-y-3 opacity-70">
+            <h2 className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-3 px-1 mt-6">Comprados</h2>
             {checkedItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 flex items-center gap-4"
+                className="bg-muted/10 rounded-[20px] p-4 flex items-center gap-4 border border-transparent group transition-colors hover:border-border/40"
               >
                 <button
                   onClick={() => toggleCheck(item.id, item.is_checked)}
-                  className="w-6 h-6 rounded-full bg-green-500 border-2 border-green-500 flex items-center justify-center shrink-0"
+                  className="w-6 h-6 rounded-full bg-secondary border-2 border-secondary flex items-center justify-center shrink-0"
                 >
-                  <Check className="w-4 h-4 text-white" />
+                  <Check className="w-4 h-4 text-secondary-foreground" />
                 </button>
-                <span className="flex-1 text-gray-500 dark:text-gray-400 line-through">{item.name}</span>
+                <span className="flex-1 text-muted-foreground font-medium line-through">{item.name}</span>
                  <button 
                     onClick={() => deleteItem(item.id)}
-                    className="p-2 text-gray-400 hover:text-red-500"
+                    className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all md:opacity-0 md:group-hover:opacity-100"
                 >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                 </button>
               </div>
             ))}
           </div>
         )}
       </main>
+      <BottomNav />
     </div>
   );
 }

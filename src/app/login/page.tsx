@@ -81,64 +81,64 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
       {/* Logo */}
-      <div className="mb-8 text-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl mx-auto mb-4">
-          <Home className="w-8 h-8 text-white" />
+      <div className="mb-8 text-center mt-[-10vh]">
+        <div className="w-20 h-20 bg-primary/10 rounded-[20px] shadow-sm flex items-center justify-center mx-auto mb-5 border border-primary/20">
+          <Home className="w-10 h-10 text-primary" />
         </div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground">
           MitAI
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
+        <p className="text-muted-foreground mt-2 font-medium">
           Gestión inteligente del hogar
         </p>
       </div>
 
       {/* Form Card */}
-      <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
+      <div className="w-full max-w-md bg-card rounded-[24px] shadow-sm p-8 border border-border/40">
+        <h2 className="text-sm uppercase tracking-wider font-bold text-foreground mb-6 text-center">
           {isSignUp ? "Crear cuenta" : "Iniciar sesión"}
         </h2>
 
         {message && (
           <div
-            className={`mb-4 p-3 rounded-lg text-sm ${
+            className={`mb-6 p-4 rounded-[16px] text-sm font-medium ${
               message.type === "error"
-                ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800"
-                : "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800"
+                ? "bg-destructive/10 text-destructive border border-destructive/20"
+                : "bg-secondary/10 text-secondary border border-secondary/20"
             }`}
           >
             {message.text}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
               Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@email.com"
                 required
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                className="w-full pl-12 pr-4 py-4 rounded-[16px] border border-border/40 bg-muted/5 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-sm"
               />
             </div>
           </div>
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
               Contraseña
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
@@ -146,12 +146,12 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 required
                 minLength={6}
-                className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                className="w-full pl-12 pr-12 py-4 rounded-[16px] border border-border/40 bg-muted/5 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -162,7 +162,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-xl shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-4 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-[16px] shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 text-sm uppercase tracking-wider"
           >
             {isLoading ? (
               <>
@@ -178,12 +178,12 @@ export default function LoginPage() {
         </form>
 
         {/* Divider */}
-        <div className="relative my-6">
+        <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200 dark:border-gray-600"></div>
+            <div className="w-full border-t border-border/40"></div>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">o continuar con</span>
+          <div className="relative flex justify-center text-xs font-bold uppercase tracking-wider">
+            <span className="px-4 bg-card text-muted-foreground">o continuar con</span>
           </div>
         </div>
 
@@ -191,7 +191,7 @@ export default function LoginPage() {
         <button
           onClick={handleGoogleLogin}
           disabled={isLoading}
-          className="w-full py-3 px-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+          className="w-full py-4 px-4 bg-transparent border border-border/40 hover:bg-muted/30 text-foreground font-bold rounded-[16px] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-sm text-sm"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -215,7 +215,7 @@ export default function LoginPage() {
         </button>
 
         {/* Toggle Sign Up / Sign In */}
-        <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-8 text-center text-sm text-muted-foreground font-medium">
           {isSignUp ? "¿Ya tienes cuenta?" : "¿No tienes cuenta?"}{" "}
           <button
             type="button"
@@ -223,7 +223,7 @@ export default function LoginPage() {
               setIsSignUp(!isSignUp);
               setMessage(null);
             }}
-            className="text-green-600 dark:text-green-400 hover:underline font-medium"
+            className="text-primary hover:text-primary/80 font-bold transition-colors"
           >
             {isSignUp ? "Iniciar sesión" : "Crear cuenta"}
           </button>
@@ -232,7 +232,7 @@ export default function LoginPage() {
         {/* Back to home */}
         <Link
           href="/"
-          className="mt-4 block text-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          className="mt-6 block text-center text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
         >
           ← Volver al inicio
         </Link>

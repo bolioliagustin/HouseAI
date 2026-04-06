@@ -22,6 +22,7 @@ import {
   Bell,
 } from "lucide-react";
 import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
+import { BottomNav } from "@/components/BottomNav";
 
 type House = {
   id: string;
@@ -268,41 +269,41 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 pb-24">
+    <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <header className="bg-background/90 backdrop-blur-lg border-b border-border/40 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
           </Link>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Configuración</h1>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Configuración</h1>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-5">
+      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Account Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border border-gray-100 dark:border-gray-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Cuenta</h2>
+        <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40 transition-all hover:shadow-md">
+          <h2 className="text-xs uppercase tracking-wider font-bold text-muted-foreground mb-4">Cuenta</h2>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center justify-between py-2">
-              <span className="text-gray-600 dark:text-gray-300">Email</span>
-              <span className="text-gray-900 dark:text-white font-medium">{userEmail}</span>
+              <span className="text-sm font-semibold text-muted-foreground">Email</span>
+              <span className="text-foreground font-bold">{userEmail}</span>
             </div>
 
-            <div className="flex items-center justify-between py-2">
-              <span className="text-gray-600 dark:text-gray-300">Modo oscuro</span>
+            <div className="flex items-center justify-between py-2 border-t border-border/40">
+              <span className="text-sm font-semibold text-muted-foreground">Modo oscuro</span>
               <button
                 onClick={toggleDarkMode}
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 transition-colors"
+                className="p-2.5 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
               >
                 {isDark ? (
-                  <Sun className="w-5 h-5 text-yellow-500" />
+                  <Sun className="w-5 h-5 text-accent" />
                 ) : (
-                  <Moon className="w-5 h-5 text-gray-600" />
+                  <Moon className="w-5 h-5 text-muted-foreground" />
                 )}
               </button>
             </div>
@@ -310,28 +311,28 @@ export default function SettingsPage() {
         </div>
 
         {/* Notifications Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border border-gray-100 dark:border-gray-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Bell className="w-5 h-5" />
+        <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40 transition-all hover:shadow-md">
+          <h2 className="text-xs uppercase tracking-wider font-bold text-muted-foreground mb-4 flex items-center gap-2">
+            <Bell className="w-4 h-4" />
             Notificaciones
           </h2>
 
           <div className="flex items-center justify-between py-2">
             <div>
-              <p className="text-gray-900 dark:text-white font-medium">Activar alertas</p>
-              <p className="text-sm text-gray-500">Recibir avisos de gastos y deudas</p>
+              <p className="text-foreground font-bold">Activar alertas</p>
+              <p className="text-xs text-muted-foreground font-medium mt-1">Recibir avisos de gastos y deudas</p>
             </div>
             {isLoadingPush ? (
-              <div className="w-12 h-6 bg-gray-100 rounded-full animate-pulse" />
+              <div className="w-12 h-6 bg-muted rounded-full animate-pulse" />
             ) : (
               <button
                 onClick={handleTogglePush}
-                className={`w-12 h-6 rounded-full transition-colors relative ${
-                  subscription ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+                className={`w-12 h-6 rounded-full transition-colors relative shadow-inner ${
+                  subscription ? "bg-accent" : "bg-muted"
                 }`}
               >
                 <div
-                  className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${
+                  className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all shadow-sm ${
                     subscription ? "left-7" : "left-1"
                   }`}
                 />
@@ -340,86 +341,86 @@ export default function SettingsPage() {
           </div>
 
           {subscription && (
-            <div className="flex justify-end mt-2">
+            <div className="flex justify-end mt-4 pt-4 border-t border-border/40">
               <button
                 onClick={handleTestPush}
-                className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 font-medium flex items-center gap-1"
+                className="text-xs text-secondary hover:text-secondary/80 font-bold uppercase tracking-wider flex items-center gap-1 transition-colors"
               >
                 <span>Enviar prueba</span>
-                <span className="text-xs">🚀</span>
+                <span>🚀</span>
               </button>
             </div>
           )}
 
           {pushError && !subscription && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+            <p className="text-xs text-destructive mt-4 p-3 bg-destructive/10 rounded-xl font-medium">
               ⚠️ {pushError}
             </p>
           )}
         </div>
 
         {/* House Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border border-gray-100 dark:border-gray-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Home className="w-5 h-5" />
+        <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40 transition-all hover:shadow-md">
+          <h2 className="text-xs uppercase tracking-wider font-bold text-muted-foreground mb-4 flex items-center gap-2">
+            <Home className="w-4 h-4" />
             Mi Casa
           </h2>
 
           {isLoading ? (
-            <p className="text-gray-500 py-4">Cargando...</p>
+            <p className="text-muted-foreground py-4 font-medium">Cargando...</p>
           ) : house ? (
-            <div className="space-y-4">
-              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
-                <p className="text-sm text-green-600 dark:text-green-400">Casa actual</p>
-                <p className="text-xl font-bold text-green-700 dark:text-green-300">
+            <div className="space-y-6">
+              <div className="p-5 bg-accent/10 rounded-2xl border border-transparent hover:border-accent/20 transition-all">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-accent mb-1">Casa actual</p>
+                <p className="text-xl font-bold text-foreground">
                   {house.name}
                 </p>
               </div>
 
               {/* Invite Code */}
-              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+              <div className="flex items-center gap-3 p-5 bg-muted/5 rounded-2xl border border-border/40">
                 <div className="flex-1">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Código de invitación</p>
-                  <p className="text-lg font-mono font-bold text-gray-900 dark:text-white">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Código de invitación</p>
+                  <p className="text-xl font-mono font-bold text-foreground">
                     {house.invite_code}
                   </p>
                 </div>
                 <button
                   onClick={copyInviteCode}
-                  className="p-3 bg-white dark:bg-gray-600 rounded-xl shadow-sm hover:shadow transition-all"
+                  className="p-3 bg-card border border-border/40 rounded-xl shadow-sm hover:shadow-md transition-all"
                 >
                   {copied ? (
-                    <Check className="w-5 h-5 text-green-500" />
+                    <Check className="w-5 h-5 text-secondary" />
                   ) : (
-                    <Copy className="w-5 h-5 text-gray-500" />
+                    <Copy className="w-5 h-5 text-muted-foreground" />
                   )}
                 </button>
               </div>
 
               {/* Members */}
               <div>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
                   <Users className="w-4 h-4" />
                   Miembros ({members.length})
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {members.map((member) => (
                     <div
                       key={member.user_id}
-                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl"
+                      className="flex items-center gap-4 p-4 bg-muted/5 border border-border/40 rounded-2xl hover:bg-muted/10 transition-colors"
                     >
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="w-12 h-12 bg-accent/20 rounded-[16px] flex items-center justify-center text-accent font-bold text-lg shadow-inner">
                         {(member.users.name || member.users.email)[0].toUpperCase()}
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-bold text-foreground">
                           {member.users.name || member.users.email}
                         </p>
-                        <p className="text-xs text-gray-500">{member.role === "owner" ? "Dueño" : "Miembro"}</p>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-0.5">{member.role === "owner" ? "Dueño" : "Miembro"}</p>
                       </div>
                       {member.hasPush && (
-                        <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center" title="Notificaciones activas">
-                          <Bell className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        <div className="w-10 h-10 bg-secondary/10 rounded-xl flex items-center justify-center shrink-0 shadow-inner" title="Notificaciones activas">
+                          <Bell className="w-5 h-5 text-secondary" />
                         </div>
                       )}
                     </div>
@@ -429,18 +430,18 @@ export default function SettingsPage() {
 
               <button
                 onClick={handleLeaveHouse}
-                className="w-full py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                className="w-full py-4 text-destructive hover:bg-destructive/10 font-bold uppercase tracking-wider text-xs rounded-xl transition-colors"
               >
                 Salir de la casa
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
-              <p className="text-gray-500 dark:text-gray-400">No estás en ninguna casa</p>
+            <div className="space-y-4">
+              <p className="text-muted-foreground font-medium py-2">No estás en ninguna casa</p>
 
               <button
                 onClick={() => setShowCreateHouse(true)}
-                className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl flex items-center justify-center gap-2"
+                className="w-full py-4 bg-primary hover:bg-primary/90 shadow-sm text-primary-foreground font-bold rounded-[16px] flex items-center justify-center gap-2 transition-all"
               >
                 <Plus className="w-5 h-5" />
                 Crear nueva casa
@@ -448,7 +449,7 @@ export default function SettingsPage() {
 
               <button
                 onClick={() => setShowJoinHouse(true)}
-                className="w-full py-3 border-2 border-green-500 text-green-600 dark:text-green-400 font-medium rounded-xl"
+                className="w-full py-4 bg-muted/50 hover:bg-muted text-foreground font-bold rounded-[16px] transition-all"
               >
                 Unirse con código
               </button>
@@ -458,31 +459,31 @@ export default function SettingsPage() {
 
         {/* Create House Modal */}
         {showCreateHouse && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-[24px] w-full max-w-md p-6 shadow-lg border border-border/40">
+              <h2 className="text-xl font-bold text-foreground mb-6 text-center">
                 Crear nueva casa
               </h2>
-              <form onSubmit={handleCreateHouse} className="space-y-4">
+              <form onSubmit={handleCreateHouse} className="space-y-5">
                 <input
                   type="text"
                   value={houseName}
                   onChange={(e) => setHouseName(e.target.value)}
                   placeholder="Nombre de la casa"
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
+                  className="w-full px-5 py-4 rounded-[16px] border border-border/40 bg-muted/5 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all text-foreground"
                 />
                 <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => setShowCreateHouse(false)}
-                    className="flex-1 py-3 border border-gray-300 rounded-xl"
+                    className="flex-1 py-4 border border-border/40 hover:bg-muted/50 rounded-[16px] font-bold text-muted-foreground transition-all"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 bg-green-500 text-white font-medium rounded-xl"
+                    className="flex-1 py-4 bg-primary text-primary-foreground font-bold rounded-[16px] shadow-sm hover:bg-primary/90 transition-all"
                   >
                     Crear
                   </button>
@@ -494,31 +495,31 @@ export default function SettingsPage() {
 
         {/* Join House Modal */}
         {showJoinHouse && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-[24px] w-full max-w-md p-6 shadow-lg border border-border/40">
+              <h2 className="text-xl font-bold text-foreground mb-6 text-center">
                 Unirse a una casa
               </h2>
-              <form onSubmit={handleJoinHouse} className="space-y-4">
+              <form onSubmit={handleJoinHouse} className="space-y-5">
                 <input
                   type="text"
                   value={inviteCode}
                   onChange={(e) => setInviteCode(e.target.value)}
                   placeholder="Código de invitación"
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 font-mono text-center text-lg"
+                  className="w-full px-5 py-4 rounded-[16px] border border-border/40 bg-muted/5 font-mono text-center text-xl tracking-widest shadow-sm focus:outline-none focus:ring-2 focus:ring-accent transition-all text-foreground uppercase"
                 />
                 <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => setShowJoinHouse(false)}
-                    className="flex-1 py-3 border border-gray-300 rounded-xl"
+                    className="flex-1 py-4 border border-border/40 hover:bg-muted/50 rounded-[16px] font-bold text-muted-foreground transition-all"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 bg-green-500 text-white font-medium rounded-xl"
+                    className="flex-1 py-4 bg-accent text-accent-foreground font-bold rounded-[16px] shadow-sm hover:bg-accent/90 transition-all"
                   >
                     Unirse
                   </button>
@@ -531,42 +532,14 @@ export default function SettingsPage() {
         {/* Logout */}
         <button
           onClick={handleSignOut}
-          className="w-full py-3 bg-white dark:bg-gray-800 text-red-500 font-medium rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          className="w-full py-4 bg-transparent text-destructive font-bold uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 hover:bg-destructive/10 transition-colors"
         >
           <LogOut className="w-5 h-5" />
           Cerrar sesión
         </button>
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex justify-around">
-          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-gray-400">
-            <Home className="w-6 h-6" />
-            <span className="text-xs">Inicio</span>
-          </Link>
-          <Link href="/expenses" className="flex flex-col items-center gap-1 text-gray-400">
-            <Receipt className="w-6 h-6" />
-            <span className="text-xs">Gastos</span>
-          </Link>
-          <Link href="/scan" className="flex flex-col items-center gap-1 -mt-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
-              <Scan className="w-7 h-7 text-white" />
-            </div>
-          </Link>
-          <Link href="/reports" className="flex flex-col items-center gap-1 text-gray-400">
-            <TrendingUp className="w-6 h-6" />
-            <span className="text-xs">Reportes</span>
-          </Link>
-          <Link
-            href="/settings"
-            className="flex flex-col items-center gap-1 text-green-600 dark:text-green-400"
-          >
-            <Settings className="w-6 h-6" />
-            <span className="text-xs font-medium">Config</span>
-          </Link>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }

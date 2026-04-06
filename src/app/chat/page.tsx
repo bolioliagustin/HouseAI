@@ -62,21 +62,21 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <header className="bg-background/90 backdrop-blur-lg border-b border-border/40 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
           </Link>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-primary" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl font-bold tracking-tight text-foreground">
                 Asistente
             </h1>
           </div>
@@ -94,10 +94,10 @@ export default function ChatPage() {
               }`}
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                className={`w-10 h-10 rounded-[14px] flex items-center justify-center shrink-0 shadow-inner ${
                   msg.role === "user"
-                    ? "bg-gray-200 dark:bg-gray-700"
-                    : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
+                    ? "bg-secondary/10 text-secondary"
+                    : "bg-primary/10 text-primary"
                 }`}
               >
                 {msg.role === "user" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
@@ -105,22 +105,22 @@ export default function ChatPage() {
 
 
               <div
-                className={`px-4 py-2 rounded-2xl max-w-[80%] whitespace-pre-wrap ${
+                className={`px-5 py-3 rounded-[20px] max-w-[80%] whitespace-pre-wrap ${
                   msg.role === "user"
-                    ? "bg-indigo-600 text-white rounded-tr-sm"
-                    : "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-sm shadow-sm"
+                    ? "bg-secondary text-secondary-foreground rounded-tr-[4px] font-medium shadow-sm"
+                    : "bg-card border border-border/40 text-foreground rounded-tl-[4px] shadow-sm leading-relaxed"
                 }`}
               >
                 {msg.role === "user" ? (
                   msg.content
                 ) : (
-                  <div className="markdown-content text-sm space-y-2">
+                  <div className="markdown-content text-sm space-y-3">
                     <ReactMarkdown 
                         components={{
-                            ul: ({node, ...props}) => <ul className="list-disc pl-4 space-y-1" {...props} />,
-                            ol: ({node, ...props}) => <ol className="list-decimal pl-4 space-y-1" {...props} />,
-                            li: ({node, ...props}) => <li className="marker:text-indigo-400" {...props} />,
-                            strong: ({node, ...props}) => <strong className="font-semibold text-indigo-600 dark:text-indigo-400" {...props} />,
+                            ul: ({node, ...props}) => <ul className="list-disc pl-4 space-y-1.5" {...props} />,
+                            ol: ({node, ...props}) => <ol className="list-decimal pl-4 space-y-1.5" {...props} />,
+                            li: ({node, ...props}) => <li className="marker:text-primary" {...props} />,
+                            strong: ({node, ...props}) => <strong className="font-bold text-primary" {...props} />,
                         }}
                     >
                         {msg.content}
@@ -132,14 +132,14 @@ export default function ChatPage() {
           ))}
           {isLoading && (
             <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-[14px] bg-primary/10 text-primary flex items-center justify-center shadow-inner">
                     <Bot className="w-5 h-5" />
                 </div>
-                <div className="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-sm shadow-sm">
-                    <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span>
+                <div className="px-5 py-4 bg-card border border-border/40 rounded-[20px] rounded-tl-[4px] shadow-sm">
+                    <div className="flex gap-1.5 pt-1.5 pb-1.5">
+                        <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                        <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                        <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"></span>
                     </div>
                 </div>
             </div>
@@ -148,7 +148,7 @@ export default function ChatPage() {
       </main>
 
       {/* Input Area */}
-      <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 sticky bottom-0">
+      <div className="bg-background/80 backdrop-blur-md border-t border-border/40 p-4 sticky bottom-0">
         <div className="max-w-4xl mx-auto">
             <form onSubmit={sendMessage} className="relative flex items-center gap-2">
             <input
@@ -156,14 +156,14 @@ export default function ChatPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Escribe tu consulta..."
-                className="w-full pl-4 pr-12 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="w-full pl-6 pr-14 py-4 rounded-[20px] border border-border/40 bg-card shadow-sm text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder-muted-foreground"
             />
             <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="absolute right-2 p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors"
+                className="absolute right-2 p-3 bg-primary text-primary-foreground rounded-[16px] shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-all font-bold"
             >
-                <Send className="w-4 h-4" />
+                <Send className="w-5 h-5" />
             </button>
             </form>
         </div>

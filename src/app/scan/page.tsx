@@ -25,6 +25,7 @@ import {
   Plus,
   FileText,
 } from "lucide-react";
+import { BottomNav } from "@/components/BottomNav";
 import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 
 type ReceiptItem = {
@@ -396,36 +397,36 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 pb-24">
+    <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <header className="bg-background/90 backdrop-blur-lg border-b border-border/40 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
           </Link>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
             {mode === "manual" ? "Cargar Gasto Manual" : "Escanear Ticket"}
           </h1>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-5">
+      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Choose Mode */}
         {mode === "choose" && !result && !isLoading && (
           <div className="space-y-4">
             {/* Scan Option */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+            <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40 transition-all hover:shadow-md">
               <div className="text-center">
-                <div className="w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Camera className="w-10 h-10 text-purple-600 dark:text-purple-400" />
+                <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+                  <Camera className="w-10 h-10 text-primary" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-xl font-bold text-foreground mb-2">
                   Escanear Ticket
                 </h2>
-                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                <p className="text-muted-foreground mb-6">
                   Tomá una foto o seleccioná una imagen del ticket de compra
                 </p>
 
@@ -438,10 +439,10 @@ export default function ScanPage() {
                   className="hidden"
                 />
 
-                <div className="flex gap-3 justify-center">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg flex items-center gap-2 hover:shadow-xl transition-all"
+                    className="px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-[16px] shadow-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-all"
                   >
                     <Camera className="w-5 h-5" />
                     Tomar foto
@@ -454,7 +455,7 @@ export default function ScanPage() {
                         fileInputRef.current.setAttribute("capture", "environment");
                       }
                     }}
-                    className="px-6 py-3 border-2 border-purple-500 text-purple-600 dark:text-purple-400 font-medium rounded-xl flex items-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all"
+                    className="px-6 py-3 bg-card border border-border/50 text-foreground font-medium rounded-[16px] flex items-center justify-center gap-2 hover:bg-muted transition-all"
                   >
                     <Upload className="w-5 h-5" />
                     Subir imagen
@@ -464,24 +465,24 @@ export default function ScanPage() {
             </div>
 
             {/* Divider */}
-            <div className="flex items-center gap-4">
-              <hr className="flex-1 border-gray-200 dark:border-gray-700" />
-              <span className="text-sm text-gray-400 dark:text-gray-500 font-medium">o</span>
-              <hr className="flex-1 border-gray-200 dark:border-gray-700" />
+            <div className="flex items-center gap-4 py-2">
+              <hr className="flex-1 border-border/50" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">o</span>
+              <hr className="flex-1 border-border/50" />
             </div>
 
             {/* Manual Option */}
             <button
               onClick={startManualMode}
-              className="w-full bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all group"
+              className="w-full bg-card rounded-[24px] p-6 shadow-sm border border-border/40 hover:border-border transition-all group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                  <FileText className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
+                <div className="w-14 h-14 bg-secondary/10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-inner">
+                  <FileText className="w-7 h-7 text-secondary" />
                 </div>
-                <div className="text-left">
-                  <h3 className="font-bold text-gray-900 dark:text-white">Cargar manualmente</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Agregá los items uno a uno, sin necesidad de ticket</p>
+                <div className="text-left py-1">
+                  <h3 className="font-bold text-foreground">Cargar manualmente</h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">Agregá los items uno a uno, sin necesidad de ticket</p>
                 </div>
               </div>
             </button>
@@ -490,68 +491,68 @@ export default function ScanPage() {
 
         {/* Manual Entry Form */}
         {mode === "manual" && result && !saved && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border border-gray-100 dark:border-gray-700 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+          <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">Tienda</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Tienda</label>
                 <input
                   type="text"
                   value={manualStore}
                   onChange={(e) => setManualStore(e.target.value)}
                   placeholder="Ej: Carrefour"
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+                  className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">Fecha</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Fecha</label>
                 <input
                   type="date"
                   value={manualDate}
                   onChange={(e) => setManualDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+                  className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm"
                 />
               </div>
             </div>
 
-            <hr className="border-gray-100 dark:border-gray-700" />
+            <hr className="border-border/50 my-4" />
 
-            <form onSubmit={addManualItem} className="space-y-3">
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Agregar item</p>
+            <form onSubmit={addManualItem} className="space-y-4">
+              <p className="font-semibold text-foreground">Agregar item</p>
               <input
                 type="text"
                 value={manualItem.name}
                 onChange={(e) => setManualItem({ ...manualItem, name: e.target.value })}
                 placeholder="Nombre del producto"
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+                className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
               />
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-xs text-gray-400 mb-1 block">Cant.</label>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Cant.</label>
                   <input
                     type="number"
                     step="any"
                     value={manualItem.quantity}
                     onChange={(e) => setManualItem({ ...manualItem, quantity: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+                    className="w-full px-3 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400 mb-1 block">Precio unit.</label>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Precio unit.</label>
                   <input
                     type="number"
                     step="any"
                     value={manualItem.unit_price}
                     onChange={(e) => setManualItem({ ...manualItem, unit_price: e.target.value })}
                     placeholder="$"
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+                    className="w-full px-3 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400 mb-1 block">Categoría</label>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Categoría</label>
                   <select
                     value={manualItem.category}
                     onChange={(e) => setManualItem({ ...manualItem, category: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+                    className="w-full px-3 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all appearance-none"
                   >
                     {CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -559,33 +560,35 @@ export default function ScanPage() {
                   </select>
                 </div>
               </div>
-              <button
-                type="submit"
-                disabled={!manualItem.name.trim() || !manualItem.unit_price}
-                className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-white font-medium rounded-xl flex items-center justify-center gap-2 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Agregar item
-              </button>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={!manualItem.name.trim() || !manualItem.unit_price}
+                  className="w-full py-3 bg-secondary hover:bg-secondary/90 disabled:opacity-40 text-secondary-foreground font-semibold rounded-[16px] flex items-center justify-center gap-2 transition-all shadow-sm"
+                >
+                  <Plus className="w-5 h-5" />
+                  Agregar item
+                </button>
+              </div>
             </form>
           </div>
         )}
 
         {/* Loading State */}
         {isLoading && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700 text-center">
-            <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
-            <p className="text-lg font-medium text-gray-900 dark:text-white">
+          <div className="bg-card rounded-[24px] p-8 shadow-sm border border-border/40 text-center">
+            <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
+            <p className="text-lg font-bold text-foreground">
               Analizando ticket...
             </p>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-muted-foreground mt-1">
               Esto puede tardar unos segundos
             </p>
             {imagePreview && (
               <img
                 src={imagePreview}
                 alt="Preview"
-                className="max-h-48 mx-auto mt-4 rounded-lg opacity-50"
+                className="max-h-48 mx-auto mt-6 rounded-xl opacity-50 border border-border"
               />
             )}
           </div>
@@ -593,11 +596,11 @@ export default function ScanPage() {
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6 border border-red-200 dark:border-red-800">
-            <p className="text-red-600 dark:text-red-400 font-medium">{error}</p>
+          <div className="bg-destructive/10 rounded-[24px] p-6 border border-destructive/20 text-center">
+            <p className="text-destructive font-semibold">{error}</p>
             <button
               onClick={resetScan}
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg"
+              className="mt-6 px-6 py-2.5 bg-destructive text-destructive-foreground font-semibold rounded-xl shadow-sm hover:bg-destructive/90 transition-all"
             >
               Intentar de nuevo
             </button>
@@ -608,44 +611,44 @@ export default function ScanPage() {
         {result && !isLoading && (
           <>
             {/* Summary Card */}
-            <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-6 shadow-xl text-white">
+            <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40 relative overflow-hidden">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <p className="text-purple-100 text-sm">
+                  <p className="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-1">
                     {result.store || (mode === "manual" ? "Gasto manual" : "Ticket escaneado")}
                   </p>
-                  <p className="text-3xl font-bold">
+                  <p className="text-[2.5rem] leading-none font-bold text-primary">
                     ${result.total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
                   </p>
                 </div>
                 {result.date && (
-                  <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
+                  <span className="bg-muted px-3 py-1.5 rounded-full text-xs font-semibold text-muted-foreground">
                     {result.date}
                   </span>
                 )}
               </div>
-              <p className="text-purple-100 text-sm">
+              <p className="text-muted-foreground text-sm font-medium mt-4">
                 {result.items.length} {mode === "manual" ? "productos cargados" : "productos detectados"}
               </p>
             </div>
 
             {/* Items List */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
-              <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white">
+            <div className="bg-card rounded-[24px] shadow-sm border border-border/40 overflow-hidden">
+              <div className="p-5 border-b border-border/40 bg-muted/10">
+                <h3 className="font-bold text-foreground">
                   Productos detectados
                 </h3>
               </div>
-              <div className="divide-y divide-gray-100 dark:divide-gray-700">
+              <div className="divide-y divide-border/40">
                 {result.items.map((item, index) => (
-                  <div key={index} className="p-4">
+                  <div key={index} className="p-4 bg-card hover:bg-muted/10 transition-colors">
                     {editingIndex === index ? (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <input
                           type="text"
                           defaultValue={item.name}
                           onBlur={(e) => updateItem(index, { name: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
+                          className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                           placeholder="Nombre del producto"
                         />
                         <div className="flex gap-3">
@@ -655,7 +658,7 @@ export default function ScanPage() {
                             onBlur={(e) =>
                               updateItem(index, { quantity: parseFloat(e.target.value) || 1 })
                             }
-                            className="w-20 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
+                            className="w-24 px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                             placeholder="Cant"
                           />
                           <input
@@ -664,14 +667,14 @@ export default function ScanPage() {
                             onBlur={(e) =>
                               updateItem(index, { unit_price: parseFloat(e.target.value) || 0 })
                             }
-                            className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
+                            className="flex-1 px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                             placeholder="Precio"
                           />
                         </div>
                         <select
                           defaultValue={item.category}
                           onChange={(e) => updateItem(index, { category: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
+                          className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all appearance-none"
                         >
                           {CATEGORIES.map((cat) => (
                             <option key={cat} value={cat}>
@@ -681,7 +684,7 @@ export default function ScanPage() {
                         </select>
                         <button
                           onClick={() => setEditingIndex(null)}
-                          className="w-full py-2 bg-green-500 text-white rounded-lg font-medium"
+                          className="w-full py-3 bg-secondary text-secondary-foreground font-semibold rounded-[16px] shadow-sm hover:bg-secondary/90 transition-all text-sm"
                         >
                           Listo
                         </button>
@@ -689,42 +692,42 @@ export default function ScanPage() {
                     ) : (
                       <div className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 dark:text-white truncate">
+                          <p className="font-semibold text-foreground truncate">
                             {item.name}
                           </p>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <span>{item.quantity}x</span>
-                            <span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-sm font-medium text-muted-foreground">{item.quantity}x</span>
+                            <span className="text-sm font-medium text-muted-foreground">
                               ${item.unit_price.toLocaleString("es-AR")}
                             </span>
-                            <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-xs">
+                            <span className="bg-muted px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                               {item.category}
                             </span>
                           </div>
                           {item.price_alert && (
-                              <div className={`text-xs flex items-center gap-1 mt-1 ${item.price_alert === "high" ? "text-red-500" : "text-green-500"}`}>
+                              <div className={`text-xs flex items-center font-semibold gap-1 mt-1.5 ${item.price_alert === "high" ? "text-destructive" : "text-primary"}`}>
                                   {item.price_alert === "high" ? "📈" : "📉"} 
                                   {item.price_alert === "high" ? "Subió " : "Bajó "}
                                   {Math.round(((item.unit_price - (item.historical_avg || 0)) / (item.historical_avg || 1)) * 100)}%
-                                  (Avg: ${Math.round(item.historical_avg || 0)})
+                                  <span className="text-muted-foreground font-medium ml-1">(Promedio: ${Math.round(item.historical_avg || 0)})</span>
                               </div>
                           )}
                         </div>
-                        <p className="font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                        <p className="font-bold text-foreground text-lg whitespace-nowrap">
                           ${item.total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
                         </p>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 ml-2">
                           <button
                             onClick={() => setEditingIndex(index)}
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                            className="p-2 hover:bg-muted rounded-lg transition-colors"
                           >
-                            <Edit2 className="w-4 h-4 text-gray-400" />
+                            <Edit2 className="w-4 h-4 text-muted-foreground hover:text-foreground" />
                           </button>
                           <button
                             onClick={() => removeItem(index)}
-                            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                            className="p-2 hover:bg-destructive/10 rounded-lg transition-colors"
                           >
-                            <Trash2 className="w-4 h-4 text-red-400" />
+                            <Trash2 className="w-4 h-4 text-destructive" />
                           </button>
                         </div>
                       </div>
@@ -735,76 +738,76 @@ export default function ScanPage() {
             </div>
 
             {/* Expense Type Selector */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 px-1">Tipo de gasto</p>
-              <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-3 pt-2">
+              <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground px-1">Clasificación</p>
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => setExpenseType("personal")}
-                  className={`p-3 rounded-xl border-2 text-center transition-all ${
+                  className={`p-4 rounded-[20px] border-2 text-center transition-all ${
                     expenseType === "personal"
-                      ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                      ? "border-primary bg-primary/5"
+                      : "border-border/40 bg-card hover:bg-muted/50"
                   }`}
                 >
-                  <User className={`w-5 h-5 mx-auto mb-1 ${
-                    expenseType === "personal" ? "text-green-600" : "text-gray-400"
+                  <User className={`w-6 h-6 mx-auto mb-2 ${
+                    expenseType === "personal" ? "text-primary" : "text-muted-foreground"
                   }`} />
-                  <p className={`text-xs font-medium ${
-                    expenseType === "personal" ? "text-green-700 dark:text-green-400" : "text-gray-500"
+                  <p className={`text-xs font-bold ${
+                    expenseType === "personal" ? "text-foreground" : "text-muted-foreground"
                   }`}>Personal</p>
                 </button>
                 <button
                   type="button"
                   onClick={() => setExpenseType("house")}
-                  className={`p-3 rounded-xl border-2 text-center transition-all ${
+                  className={`p-4 rounded-[20px] border-2 text-center transition-all ${
                     expenseType === "house"
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                      ? "border-secondary bg-secondary/5"
+                      : "border-border/40 bg-card hover:bg-muted/50"
                   }`}
                 >
-                  <Home className={`w-5 h-5 mx-auto mb-1 ${
-                    expenseType === "house" ? "text-blue-600" : "text-gray-400"
+                  <Home className={`w-6 h-6 mx-auto mb-2 ${
+                    expenseType === "house" ? "text-secondary" : "text-muted-foreground"
                   }`} />
-                  <p className={`text-xs font-medium ${
-                    expenseType === "house" ? "text-blue-700 dark:text-blue-400" : "text-gray-500"
+                  <p className={`text-xs font-bold ${
+                    expenseType === "house" ? "text-foreground" : "text-muted-foreground"
                   }`}>De la casa</p>
                 </button>
                 <button
                   type="button"
                   onClick={() => setExpenseType("split")}
-                  className={`p-3 rounded-xl border-2 text-center transition-all ${
+                  className={`p-4 rounded-[20px] border-2 text-center transition-all ${
                     expenseType === "split"
-                      ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                      ? "border-accent bg-accent/5"
+                      : "border-border/40 bg-card hover:bg-muted/50"
                   }`}
                 >
-                  <Users className={`w-5 h-5 mx-auto mb-1 ${
-                    expenseType === "split" ? "text-purple-600" : "text-gray-400"
+                  <Users className={`w-6 h-6 mx-auto mb-2 ${
+                    expenseType === "split" ? "text-accent" : "text-muted-foreground"
                   }`} />
-                  <p className={`text-xs font-medium ${
-                    expenseType === "split" ? "text-purple-700 dark:text-purple-400" : "text-gray-500"
+                  <p className={`text-xs font-bold ${
+                    expenseType === "split" ? "text-foreground" : "text-muted-foreground"
                   }`}>Dividido</p>
                 </button>
               </div>
-              <p className="text-xs text-gray-400 dark:text-gray-500 px-1">
-                {expenseType === "personal" && "Solo aparece en tus gastos"}
-                {expenseType === "house" && "Se trackea como gasto de la casa, sin dividir"}
-                {expenseType === "split" && "Se divide entre los miembros de la casa"}
+              <p className="text-xs text-muted-foreground px-1">
+                {expenseType === "personal" && "Solo aparece en tus gastos."}
+                {expenseType === "house" && "Gasto de la casa, para todos pero sin dividir."}
+                {expenseType === "split" && "El gasto se dividirá en partes iguales."}
               </p>
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3">
+            <div className="flex gap-4 pt-4">
               <button
                 onClick={resetScan}
-                className="flex-1 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl flex items-center justify-center gap-2"
+                className="flex-1 py-3.5 bg-card border border-border/50 text-foreground font-semibold rounded-[16px] flex items-center justify-center gap-2 hover:bg-muted transition-all"
               >
                 <X className="w-5 h-5" />
                 Cancelar
               </button>
               {saved ? (
-                <div className="flex-1 py-3 bg-green-500 text-white font-medium rounded-xl flex items-center justify-center gap-2">
+                <div className="flex-1 py-3.5 bg-primary text-primary-foreground font-semibold rounded-[16px] flex items-center justify-center gap-2 shadow-sm">
                   <Check className="w-5 h-5" />
                   ¡Guardado!
                 </div>
@@ -812,14 +815,14 @@ export default function ScanPage() {
                 <button
                   onClick={saveToDatabase}
                   disabled={isSaving || result.items.length === 0}
-                  className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 py-3.5 bg-primary text-primary-foreground font-semibold rounded-[16px] shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-primary/90 transition-all"
                 >
                   {isSaving ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <Save className="w-5 h-5" />
                   )}
-                  Guardar gasto
+                  Guardar
                 </button>
               )}
             </div>
@@ -827,32 +830,7 @@ export default function ScanPage() {
         )}
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex justify-around">
-          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-gray-400">
-            <Home className="w-6 h-6" />
-            <span className="text-xs">Inicio</span>
-          </Link>
-          <Link href="/expenses" className="flex flex-col items-center gap-1 text-gray-400">
-            <Receipt className="w-6 h-6" />
-            <span className="text-xs">Gastos</span>
-          </Link>
-          <Link href="/scan" className="flex flex-col items-center gap-1 -mt-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30">
-              <Scan className="w-7 h-7 text-white" />
-            </div>
-          </Link>
-          <Link href="/reports" className="flex flex-col items-center gap-1 text-gray-400">
-            <TrendingUp className="w-6 h-6" />
-            <span className="text-xs">Reportes</span>
-          </Link>
-          <Link href="/settings" className="flex flex-col items-center gap-1 text-gray-400">
-            <Settings className="w-6 h-6" />
-            <span className="text-xs">Config</span>
-          </Link>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }

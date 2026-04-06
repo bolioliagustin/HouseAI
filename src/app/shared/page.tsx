@@ -23,6 +23,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
+import { BottomNav } from "@/components/BottomNav";
 
 type SharedExpense = {
   id: string;
@@ -374,35 +375,37 @@ export default function SharedExpensesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 pb-24">
+    <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <header className="bg-background/90 backdrop-blur-lg border-b border-border/40 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
           </Link>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
             Gastos de la Casa
           </h1>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-5">
+      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
                 {/* Installments Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <div className="bg-card rounded-[24px] shadow-sm border border-border/40 overflow-hidden transition-all hover:shadow-md">
+          <div className="p-5 border-b border-border/40 flex items-center justify-between bg-muted/10">
             <div className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              <h3 className="font-semibold text-gray-900 dark:text-white">
+              <div className="bg-accent/10 p-2 rounded-xl">
+                 <CreditCard className="w-5 h-5 text-accent" />
+              </div>
+              <h3 className="font-bold text-foreground">
                 Cuotas compartidas
               </h3>
             </div>
             <button
               onClick={() => setShowAddForm(!showAddForm)}
-              className="p-2 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 transition-colors"
+              className="p-2.5 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm transition-colors"
             >
               {showAddForm ? (
                 <X className="w-5 h-5" />
@@ -414,7 +417,7 @@ export default function SharedExpensesPage() {
 
           {/* Add Installment Form */}
           {showAddForm && (
-            <div className="p-4 bg-purple-50 dark:bg-purple-900/10 border-b border-gray-100 dark:border-gray-700 space-y-3">
+            <div className="p-5 bg-muted/5 border-b border-border/40 space-y-4">
               <input
                 type="text"
                 placeholder="Descripción (ej: Sillón nuevo)"
@@ -422,7 +425,7 @@ export default function SharedExpensesPage() {
                 onChange={(e) =>
                   setNewInstallment({ ...newInstallment, description: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-5 py-4 rounded-[16px] border border-border/40 bg-card shadow-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all"
               />
 
               <select
@@ -430,7 +433,7 @@ export default function SharedExpensesPage() {
                 onChange={(e) =>
                   setNewInstallment({ ...newInstallment, category: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-5 py-4 rounded-[16px] border border-border/40 bg-card shadow-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all"
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat.value} value={cat.value}>
@@ -439,9 +442,9 @@ export default function SharedExpensesPage() {
                 ))}
               </select>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block ml-1">
                     Monto total
                   </label>
                   <input
@@ -454,11 +457,11 @@ export default function SharedExpensesPage() {
                         total_amount: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-5 py-4 rounded-[16px] border border-border/40 shadow-sm bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block ml-1">
                     Cuotas
                   </label>
                   <select
@@ -469,7 +472,7 @@ export default function SharedExpensesPage() {
                         installments: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-5 py-4 rounded-[16px] border border-border/40 shadow-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all"
                   >
                     {[2, 3, 6, 9, 12, 18, 24].map((n) => (
                       <option key={n} value={n}>
@@ -482,10 +485,10 @@ export default function SharedExpensesPage() {
 
               {/* Preview */}
               {newInstallment.total_amount && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-3 text-sm">
-                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                <div className="bg-card shadow-sm border border-border/40 rounded-[16px] p-4 text-sm mt-2">
+                  <div className="flex justify-between text-muted-foreground font-medium">
                     <span>Cuota mensual total</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
+                    <span className="font-bold text-foreground">
                       $
                       {Math.ceil(
                         parseFloat(newInstallment.total_amount) /
@@ -493,9 +496,9 @@ export default function SharedExpensesPage() {
                       ).toLocaleString("es-AR")}
                     </span>
                   </div>
-                  <div className="flex justify-between text-gray-600 dark:text-gray-400 mt-1">
+                  <div className="flex justify-between text-muted-foreground font-medium mt-2 pt-2 border-t border-border/40">
                     <span>Tu parte por mes</span>
-                    <span className="font-bold text-purple-600 dark:text-purple-400">
+                    <span className="font-bold text-accent text-base">
                       $
                       {Math.ceil(
                         parseFloat(newInstallment.total_amount) /
@@ -514,7 +517,7 @@ export default function SharedExpensesPage() {
                   !newInstallment.description ||
                   !newInstallment.total_amount
                 }
-                className="w-full py-3 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                className="w-full py-4 mt-2 bg-accent hover:bg-accent/90 shadow-sm disabled:opacity-50 text-accent-foreground font-bold rounded-[16px] transition-colors flex items-center justify-center gap-2"
               >
                 {isSavingInstallment ? (
                   "Guardando..."
@@ -529,14 +532,14 @@ export default function SharedExpensesPage() {
 
           {/* Installments List */}
           {installments.length === 0 && !showAddForm ? (
-            <div className="p-6 text-center">
-              <CreditCard className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-400 dark:text-gray-500">
+            <div className="p-8 text-center bg-muted/5">
+              <CreditCard className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground font-medium">
                 No hay cuotas compartidas
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            <div className="divide-y divide-border/40">
               {installments.map((inst) => {
                 const myMonthlyCost = inst.monthly_amount / memberCount;
                 const isFinished = inst.cuotas_restantes === 0;
@@ -544,44 +547,44 @@ export default function SharedExpensesPage() {
                 return (
                   <div
                     key={inst.id}
-                    className={`p-4 flex items-center gap-4 ${
+                    className={`p-5 flex items-center gap-4 hover:bg-muted/5 transition-colors group ${
                       isFinished ? "opacity-50" : ""
                     }`}
                   >
                     <div
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      className={`w-12 h-12 rounded-[16px] flex items-center justify-center shadow-inner shrink-0 ${
                         isFinished
-                          ? "bg-green-100 dark:bg-green-900/30"
-                          : "bg-purple-100 dark:bg-purple-900/30"
+                          ? "bg-secondary/10"
+                          : "bg-accent/10"
                       }`}
                     >
                       {isFinished ? (
-                        <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        <Check className="w-6 h-6 text-secondary" />
                       ) : (
-                        <CreditCard className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        <CreditCard className="w-6 h-6 text-accent" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white truncate">
+                      <p className="font-semibold text-foreground truncate">
                         {inst.description}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-xs font-medium text-muted-foreground mt-0.5 uppercase tracking-wider">
                         {isFinished ? (
-                          "✅ Pagado completo"
+                          "Pagado completo"
                         ) : (
                           <>
                             Cuota {inst.cuota_actual} de {inst.installments} ·{" "}
-                            <span className="text-purple-600 dark:text-purple-400 font-medium">
+                            <span className="text-accent font-bold">
                               ${Math.ceil(myMonthlyCost).toLocaleString("es-AR")}/mes
                             </span>
                           </>
                         )}
                       </p>
                       {/* Progress bar */}
-                      <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1.5 overflow-hidden">
+                      <div className="w-full h-2 bg-muted rounded-full mt-2 overflow-hidden shadow-inner">
                         <div
                           className={`h-full rounded-full transition-all ${
-                            isFinished ? "bg-green-500" : "bg-purple-500"
+                            isFinished ? "bg-secondary" : "bg-accent"
                           }`}
                           style={{
                             width: `${(inst.cuota_actual / inst.installments) * 100}%`,
@@ -590,17 +593,17 @@ export default function SharedExpensesPage() {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-gray-900 dark:text-white">
+                      <p className="text-base font-bold text-foreground">
                         ${Number(inst.total_amount).toLocaleString("es-AR")}
                       </p>
-                      <p className="text-xs text-gray-400">total</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">total</p>
                     </div>
                     {inst.created_by === myUserId && (
                       <button
                         onClick={() => deleteInstallment(inst.id)}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-5 h-5" />
                       </button>
                     )}
                   </div>
@@ -612,15 +615,17 @@ export default function SharedExpensesPage() {
         
         {/* Member Spending Summary */}
         {memberSpending.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center gap-2 mb-4">
-              <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <h3 className="font-semibold text-gray-900 dark:text-white">
+          <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40 transition-all hover:shadow-md">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="bg-primary/10 p-2 rounded-xl">
+                 <Users className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="font-bold text-foreground">
                 Gasto por persona
               </h3>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {memberSpending.map((member) => {
                 const percentage =
                   totalHouseSpending > 0
@@ -629,26 +634,26 @@ export default function SharedExpensesPage() {
 
                 return (
                   <div key={member.user_id}>
-                    <div className="flex justify-between items-center mb-1">
+                    <div className="flex justify-between items-center mb-2">
                       <span
-                        className={`text-sm font-medium ${
+                        className={`text-sm font-semibold uppercase tracking-wider ${
                           member.user_id === myUserId
-                            ? "text-green-700 dark:text-green-400"
-                            : "text-gray-700 dark:text-gray-300"
+                            ? "text-secondary"
+                            : "text-muted-foreground"
                         }`}
                       >
                         {member.user_id === myUserId ? "Vos" : member.name}
                       </span>
-                      <span className="text-sm font-bold text-gray-900 dark:text-white">
+                      <span className="text-sm font-bold text-foreground">
                         ${member.total.toLocaleString("es-AR")}
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden shadow-inner">
                       <div
                         className={`h-full rounded-full transition-all ${
                           member.user_id === myUserId
-                            ? "bg-green-500"
-                            : "bg-blue-500"
+                            ? "bg-secondary"
+                            : "bg-primary"
                         }`}
                         style={{ width: `${Math.min(percentage, 100)}%` }}
                       />
@@ -658,9 +663,9 @@ export default function SharedExpensesPage() {
               })}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between">
-              <span className="text-sm text-gray-500">Total casa</span>
-              <span className="font-bold text-gray-900 dark:text-white">
+            <div className="mt-6 pt-4 border-t border-border/40 flex justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total casa</span>
+              <span className="font-bold text-foreground text-lg">
                 ${totalHouseSpending.toLocaleString("es-AR")}
               </span>
             </div>
@@ -670,17 +675,17 @@ export default function SharedExpensesPage() {
         {/* Balance Cards - only if there are splits */}
         {(balance.owe > 0 || balance.owed > 0) && (
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-4 border border-red-200 dark:border-red-800">
-              <p className="text-sm text-red-600 dark:text-red-400">Debo</p>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+            <div className="bg-destructive/10 rounded-[24px] p-5 border border-transparent hover:border-destructive/20 transition-all text-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-destructive mb-1">Debo</p>
+              <p className="text-2xl font-bold text-destructive">
                 ${balance.owe.toLocaleString("es-AR")}
               </p>
             </div>
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl p-4 border border-green-200 dark:border-green-800">
-              <p className="text-sm text-green-600 dark:text-green-400">
+            <div className="bg-secondary/10 rounded-[24px] p-5 border border-transparent hover:border-secondary/20 transition-all text-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-secondary mb-1">
                 Me deben
               </p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <p className="text-2xl font-bold text-secondary">
                 ${balance.owed.toLocaleString("es-AR")}
               </p>
             </div>
@@ -689,29 +694,31 @@ export default function SharedExpensesPage() {
 
         {/* Expenses List */}
         {isLoading ? (
-          <div className="text-center py-8 text-gray-500">Cargando...</div>
+          <div className="text-center py-8 text-muted-foreground font-medium">Cargando...</div>
         ) : expenses.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center">
-            <ShoppingBag className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">
+          <div className="bg-card border border-border/40 rounded-2xl p-10 text-center shadow-sm">
+            <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
+               <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <p className="text-foreground font-semibold">
               No hay gastos de la casa
             </p>
             <Link
               href="/scan"
-              className="mt-4 inline-block px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+              className="mt-4 inline-block px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold transition-colors shadow-sm"
             >
               Escanear un ticket
             </Link>
           </div>
         ) : (
           <div className="space-y-3">
-            <h3 className="font-semibold text-gray-700 dark:text-gray-300 px-1">
+            <h3 className="text-xs uppercase tracking-wider font-bold text-muted-foreground px-1 mt-6">
               Gastos recientes
             </h3>
             {expenses.map((expense) => (
               <div
                 key={expense.id}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
+                className="bg-card rounded-[24px] shadow-sm border border-border/40 overflow-hidden transition-all hover:shadow-md"
               >
                 <button
                   onClick={() =>
@@ -719,41 +726,41 @@ export default function SharedExpensesPage() {
                       expandedId === expense.id ? null : expense.id
                     )
                   }
-                  className="w-full p-4 flex items-center gap-4 text-left"
+                  className="w-full p-4 flex items-center gap-4 text-left hover:bg-muted/10 transition-colors"
                 >
                   <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    className={`w-12 h-12 rounded-[16px] flex items-center justify-center shadow-inner shrink-0 ${
                       !expense.is_split
-                        ? "bg-blue-100 dark:bg-blue-900/30"
+                        ? "bg-accent/10 text-accent"
                         : expense.paid_by === myUserId
-                        ? "bg-green-100 dark:bg-green-900/30"
+                        ? "bg-secondary/10 text-secondary"
                         : expense.is_paid
-                        ? "bg-gray-100 dark:bg-gray-700"
-                        : "bg-red-100 dark:bg-red-900/30"
+                        ? "bg-muted text-muted-foreground"
+                        : "bg-destructive/10 text-destructive"
                     }`}
                   >
                     {!expense.is_split ? (
-                      <Home className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      <Home className="w-6 h-6" />
                     ) : expense.paid_by === myUserId ? (
-                      <Receipt className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      <Receipt className="w-6 h-6" />
                     ) : expense.is_paid ? (
-                      <Check className="w-6 h-6 text-gray-400" />
+                      <Check className="w-6 h-6" />
                     ) : (
-                      <Clock className="w-6 h-6 text-red-600 dark:text-red-400" />
+                      <Clock className="w-6 h-6" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-gray-900 dark:text-white truncate">
+                      <p className="font-semibold text-foreground truncate">
                         {expense.description || expense.category}
                       </p>
                       {!expense.is_split && (
-                        <span className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded font-medium shrink-0">
+                        <span className="text-[10px] px-2 py-0.5 bg-accent/10 text-accent rounded-full font-bold uppercase tracking-wider shrink-0">
                           Sin dividir
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-xs font-medium text-muted-foreground mt-0.5 uppercase tracking-wider">
                       {formatDate(expense.date)} ·{" "}
                       {expense.paid_by === myUserId
                         ? "Pagaste vos"
@@ -761,17 +768,17 @@ export default function SharedExpensesPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-gray-900 dark:text-white">
+                    <p className="font-bold text-foreground text-base">
                       ${expense.total_amount.toLocaleString("es-AR")}
                     </p>
                     {expense.is_split &&
                       expense.my_split > 0 &&
                       expense.paid_by !== myUserId && (
                         <p
-                          className={`text-sm ${
+                          className={`text-[10px] font-bold uppercase tracking-wider ${
                             expense.is_paid
-                              ? "text-gray-400"
-                              : "text-red-600 dark:text-red-400"
+                              ? "text-muted-foreground"
+                              : "text-destructive"
                           }`}
                         >
                           {expense.is_paid
@@ -781,18 +788,18 @@ export default function SharedExpensesPage() {
                       )}
                   </div>
                   {expandedId === expense.id ? (
-                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                    <ChevronUp className="w-5 h-5 text-muted-foreground shrink-0" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                    <ChevronDown className="w-5 h-5 text-muted-foreground shrink-0" />
                   )}
                 </button>
 
                 {/* Expanded Content */}
                 {expandedId === expense.id && (
-                  <div className="border-t border-gray-100 dark:border-gray-700">
+                  <div className="border-t border-border/40 bg-muted/5">
                     {expense.items.length > 0 && (
-                      <div className="p-4 space-y-2">
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <div className="p-4 space-y-2.5">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
                           Productos ({expense.items.length})
                         </p>
                         {expense.items.slice(0, 5).map((item, i) => (
@@ -800,16 +807,16 @@ export default function SharedExpensesPage() {
                             key={i}
                             className="flex justify-between text-sm"
                           >
-                            <span className="text-gray-600 dark:text-gray-400">
+                            <span className="text-muted-foreground font-medium">
                               {item.quantity}x {item.name}
                             </span>
-                            <span className="text-gray-900 dark:text-white">
+                            <span className="text-foreground font-semibold">
                               ${item.total.toLocaleString("es-AR")}
                             </span>
                           </div>
                         ))}
                         {expense.items.length > 5 && (
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-muted-foreground font-medium italic">
                             +{expense.items.length - 5} productos más
                           </p>
                         )}
@@ -820,10 +827,10 @@ export default function SharedExpensesPage() {
                       expense.paid_by !== myUserId &&
                       expense.my_split > 0 &&
                       !expense.is_paid && (
-                        <div className="p-4 border-t border-gray-100 dark:border-gray-700">
+                        <div className="p-4 border-t border-border/40">
                           <button
                             onClick={() => markAsPaid(expense.id)}
-                            className="w-full py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl flex items-center justify-center gap-2 transition-colors"
+                            className="w-full py-3 bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm"
                           >
                             <Check className="w-5 h-5" />
                             Marcar como pagado
@@ -838,44 +845,7 @@ export default function SharedExpensesPage() {
         )}
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex justify-around">
-          <Link
-            href="/dashboard"
-            className="flex flex-col items-center gap-1 text-gray-400"
-          >
-            <Home className="w-6 h-6" />
-            <span className="text-xs">Inicio</span>
-          </Link>
-          <Link
-            href="/expenses"
-            className="flex flex-col items-center gap-1 text-gray-400"
-          >
-            <Receipt className="w-6 h-6" />
-            <span className="text-xs">Gastos</span>
-          </Link>
-          <Link href="/scan" className="flex flex-col items-center gap-1 -mt-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
-              <Scan className="w-7 h-7 text-white" />
-            </div>
-          </Link>
-          <Link
-            href="/reports"
-            className="flex flex-col items-center gap-1 text-gray-400"
-          >
-            <TrendingUp className="w-6 h-6" />
-            <span className="text-xs">Reportes</span>
-          </Link>
-          <Link
-            href="/settings"
-            className="flex flex-col items-center gap-1 text-gray-400"
-          >
-            <Settings className="w-6 h-6" />
-            <span className="text-xs">Config</span>
-          </Link>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }

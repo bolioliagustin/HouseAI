@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Home, Receipt, TrendingUp, Scan, Settings, LogOut, Plus, Users, ShoppingCart, ChevronRight, Sparkles } from "lucide-react";
+import { BottomNav } from "@/components/BottomNav";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -157,27 +158,27 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 pb-24">
+    <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <header className="bg-background/90 backdrop-blur-lg border-b border-border/40 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Home className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center">
+              <Home className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold tracking-tight text-foreground">
                 MitAI
               </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Hola, {profile?.name || user.email?.split("@")[0]}! 👋
+              <p className="text-xs text-muted-foreground">
+                Hola, {profile?.name || user.email?.split("@")[0]} 👋
               </p>
             </div>
           </div>
           <form action={signOut}>
             <button 
               type="submit"
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-300"
+              className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -186,210 +187,157 @@ export default async function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-5">
+      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Balance Card */}
-        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 shadow-xl text-white">
-          <p className="text-green-100 text-sm font-medium mb-1">Balance disponible</p>
-          <p className="text-4xl font-bold mb-4">
+        <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40">
+          <p className="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-1">Balance disponible</p>
+          <p className="text-[2.5rem] leading-none font-bold text-primary mb-6">
             ${balance.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
           </p>
-          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/20">
+          
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-green-100 text-xs">Ingresos</p>
-              <p className="text-lg font-semibold">
+              <p className="text-muted-foreground text-xs font-medium">Ingresos</p>
+              <p className="text-base font-semibold text-foreground">
                 ${totalIncome.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
               </p>
             </div>
             <div>
-              <p className="text-green-100 text-xs">Gastos fijos</p>
-              <p className="text-lg font-semibold">
+              <p className="text-muted-foreground text-xs font-medium">Gastos fijos</p>
+              <p className="text-base font-semibold text-foreground">
                 ${totalFixed.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
               </p>
             </div>
           </div>
+
+          <div className="my-5 border-t border-border/50"></div>
+
           {/* Monthly expenses breakdown */}
-          <div className="mt-3 pt-3 border-t border-white/10 space-y-1">
-            <div className="flex justify-between items-center">
-              <p className="text-green-100 text-xs">Gastos personales del mes</p>
-              <p className="text-sm font-semibold">${totalSharedPersonal.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</p>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <p className="text-muted-foreground">Gastos personales del mes</p>
+              <p className="font-semibold text-foreground">${totalSharedPersonal.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</p>
             </div>
             {houseMember?.house_id && (
-              <div className="flex justify-between items-center">
-                <p className="text-green-100 text-xs">Gastos de la casa (tu parte)</p>
-                <p className="text-sm font-semibold">${totalSharedHouse.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</p>
+              <div className="flex justify-between items-center text-sm">
+                <p className="text-muted-foreground">Gastos de la casa</p>
+                <div className="text-right">
+                  <p className="font-semibold text-foreground">${totalSharedHouse.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</p>
+                  <p className="text-[10px] text-muted-foreground">Total: ${sharedHouse.reduce((acc: number, val: any) => acc + Number(val.total_amount), 0).toLocaleString("es-AR")}</p>
+                </div>
               </div>
             )}
-            <div className="flex justify-between items-center pt-1 border-t border-white/10">
-              <p className="text-white text-xs font-semibold">Total gastos del mes</p>
-              <p className="text-sm font-bold">${totalShared.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</p>
-            </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-4">
-          <Link
-            href="/incomes"
-            className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-5 shadow-lg text-white hover:scale-[1.02] transition-transform group relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 p-3 opacity-10">
-              <Plus className="w-20 h-20" />
-            </div>
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 backdrop-blur-sm group-hover:scale-110 transition-transform">
-              <Plus className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="font-bold text-lg relative z-10">Ingresos</h3>
-            <p className="text-sm text-emerald-100 font-medium relative z-10">Cargar ingreso</p>
-          </Link>
+        <div>
+          <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-3 px-1">Acciones Rápidas</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              href="/incomes"
+              className="bg-primary/5 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 transition-colors"
+            >
+              <div className="w-10 h-10 bg-card rounded-full flex items-center justify-center shadow-sm">
+                <Plus className="w-5 h-5 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-foreground">Ingresos</span>
+            </Link>
 
-          <Link
-            href="/expenses"
-            className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-5 shadow-lg text-white hover:scale-[1.02] transition-transform group relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 p-3 opacity-10">
-              <Receipt className="w-20 h-20" />
-            </div>
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 backdrop-blur-sm group-hover:scale-110 transition-transform">
-              <Receipt className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="font-bold text-lg relative z-10">Gastos</h3>
-            <p className="text-sm text-blue-100 font-medium relative z-10">Gestionar gastos</p>
-          </Link>
+            <Link
+              href="/expenses"
+              className="bg-primary/5 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 transition-colors"
+            >
+              <div className="w-10 h-10 bg-card rounded-full flex items-center justify-center shadow-sm">
+                <Receipt className="w-5 h-5 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-foreground">Gastos</span>
+            </Link>
 
-          <Link
-            href="/scan"
-            className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-5 shadow-lg text-white hover:scale-[1.02] transition-transform group relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 p-3 opacity-10">
-              <Scan className="w-20 h-20" />
-            </div>
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 backdrop-blur-sm group-hover:scale-110 transition-transform">
-              <Scan className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="font-bold text-lg relative z-10">Escanear</h3>
-            <p className="text-sm text-purple-100 font-medium relative z-10">Escanear ticket</p>
-          </Link>
+            <Link
+              href="/scan"
+              className="bg-primary/5 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 transition-colors"
+            >
+              <div className="w-10 h-10 bg-card rounded-full flex items-center justify-center shadow-sm">
+                <Scan className="w-5 h-5 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-foreground">Escanear</span>
+            </Link>
 
-          <Link
-            href="/reports"
-            className="bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl p-5 shadow-lg text-white hover:scale-[1.02] transition-transform group relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 p-3 opacity-10">
-              <TrendingUp className="w-20 h-20" />
-            </div>
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 backdrop-blur-sm group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="font-bold text-lg relative z-10">Reportes</h3>
-            <p className="text-sm text-orange-100 font-medium relative z-10">Ver estadísticas</p>
-          </Link>
+            <Link
+              href="/reports"
+              className="bg-primary/5 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 transition-colors"
+            >
+              <div className="w-10 h-10 bg-card rounded-full flex items-center justify-center shadow-sm">
+                <TrendingUp className="w-5 h-5 text-foreground" />
+              </div>
+              <span className="text-sm font-medium text-foreground">Reportes</span>
+            </Link>
+          </div>
         </div>
 
         {/* Shopping List Banner */}
         {houseMember?.house_id && (
-            <Link href="/shopping" className="block transform transition-all hover:scale-[1.02]">
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-5 shadow-lg text-white relative overflow-hidden flex items-center justify-between">
-                    <div className="flex items-center gap-4 relative z-10">
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                            <ShoppingCart className="w-6 h-6 text-white" />
+            <Link href="/shopping" className="block transform transition-all hover:scale-[1.01]">
+                <div className="bg-card rounded-2xl p-4 shadow-sm border border-border/40 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center">
+                            <ShoppingCart className="w-5 h-5 text-secondary" />
                         </div>
-                        <div>
-                            <h3 className="font-bold text-lg">Lista de Compras</h3>
-                            <p className="text-purple-100 text-sm font-medium">No olvides nada del super</p>
-                        </div>
+                        <h3 className="font-semibold text-foreground text-sm">Lista de compras</h3>
                     </div>
-                    <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
-                         <ChevronRight className="w-6 h-6 text-white" />
-                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
                 </div>
             </Link>
         )}
 
         {/* Shared Balance - only if in a house */}
         {houseMember?.house_id && (
-          <Link href="/shared" className="block transform transition-all hover:scale-[1.02]">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-6 shadow-xl text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Users className="w-24 h-24" />
-              </div>
-
-              <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <Users className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">
-                      {(Array.isArray(houseMember.houses) ? houseMember.houses[0] : houseMember.houses)?.name}
-                    </h3>
-                    {sharedBalance > 0 ? (
-                      <p className="text-blue-100 font-medium">
-                        Debés ${Math.ceil(sharedBalance).toLocaleString("es-AR")}
-                      </p>
-                    ) : (
-                      <p className="text-blue-100 font-medium">
-                        ¡Estás al día! 🎉
-                      </p>
-                    )}
-                  </div>
+          <Link href="/shared" className="block transform transition-all hover:scale-[1.01]">
+            <div className="bg-card rounded-2xl p-4 shadow-sm border border-border/40 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
+                  <Home className="w-5 h-5 text-accent" />
                 </div>
-                <div className="bg-white/20 px-4 py-2 rounded-xl backdrop-blur-sm">
-                  <span className="text-sm font-bold">Ver casa</span>
+                <div>
+                  <h3 className="font-semibold text-foreground text-sm">Mi casa</h3>
+                  {sharedBalance > 0 ? (
+                    <p className="text-accent font-medium text-xs">
+                      Debés ${Math.ceil(sharedBalance).toLocaleString("es-AR")}
+                    </p>
+                  ) : (
+                    <p className="text-primary font-medium text-xs">
+                      ¡Estás al día! 🎉
+                    </p>
+                  )}
                 </div>
               </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </div>
           </Link>
         )}
+        
+        {/* Weekly Summary mockup from Figma */}
+        <div className="bg-[#896f53] rounded-2xl p-5 shadow-sm mt-4 relative overflow-hidden">
+             <div className="relative z-10">
+                 <h3 className="text-white font-semibold mb-1">Resumen Semanal</h3>
+                 <p className="text-white/80 text-sm leading-snug max-w-[80%]">Tus gastos de casa se mantienen dentro del presupuesto proyectado para este mes.</p>
+             </div>
+             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-xl pointer-events-none"></div>
+        </div>
       </main>
 
       {/* Chat FAB */}
       {houseMember?.house_id && (
         <Link
             href="/chat"
-            className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform z-50"
+            className="fixed bottom-24 right-4 w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform z-50"
         >
-            <Sparkles className="w-7 h-7" />
+            <Sparkles className="w-6 h-6" />
         </Link>
       )}
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex justify-around">
-          <Link
-            href="/dashboard"
-            className="flex flex-col items-center gap-1 text-green-600 dark:text-green-400"
-          >
-            <Home className="w-6 h-6" />
-            <span className="text-xs font-medium">Inicio</span>
-          </Link>
-          <Link
-            href="/expenses"
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          >
-            <Receipt className="w-6 h-6" />
-            <span className="text-xs">Gastos</span>
-          </Link>
-          <Link href="/scan" className="flex flex-col items-center gap-1 -mt-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
-              <Scan className="w-7 h-7 text-white" />
-            </div>
-          </Link>
-          <Link
-            href="/reports"
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          >
-            <TrendingUp className="w-6 h-6" />
-            <span className="text-xs">Reportes</span>
-          </Link>
-          <Link
-            href="/settings"
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          >
-            <Settings className="w-6 h-6" />
-            <span className="text-xs">Config</span>
-          </Link>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }

@@ -18,6 +18,7 @@ import {
   DollarSign,
   Repeat,
 } from "lucide-react";
+import { BottomNav } from "@/components/BottomNav";
 
 type Income = {
   id: string;
@@ -97,58 +98,58 @@ export default function IncomesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 pb-24">
+    <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <header className="bg-background/90 backdrop-blur-lg border-b border-border/40 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </Link>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Ingresos</h1>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Ingresos</h1>
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="p-2 bg-green-500 hover:bg-green-600 rounded-xl text-white transition-colors"
+            className="p-2 bg-primary hover:bg-primary/90 rounded-xl text-primary-foreground transition-colors shadow-sm"
           >
             <Plus className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-5">
+      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Summary Card */}
-        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 shadow-xl text-white">
-          <p className="text-green-100 text-sm font-medium mb-1">Total ingresos</p>
-          <p className="text-4xl font-bold">
+        <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40">
+          <p className="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-1">Total ingresos</p>
+          <p className="text-[2.5rem] leading-none font-bold text-primary">
             ${totalIncome.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
           </p>
         </div>
 
         {/* Form Modal */}
         {showForm && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-2xl w-full max-w-md">
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+            <div className="bg-card rounded-t-[32px] sm:rounded-[24px] w-full max-w-md max-h-[85vh] overflow-y-auto shadow-2xl border border-border/10">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-xl font-bold text-foreground">
                     Nuevo ingreso
                   </h2>
                   <button
                     onClick={resetForm}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="p-2 hover:bg-muted rounded-full transition-colors"
                   >
-                    <X className="w-5 h-5 text-gray-500" />
+                    <X className="w-5 h-5 text-muted-foreground" />
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Amount */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Monto
                     </label>
                     <input
@@ -159,24 +160,26 @@ export default function IncomesPage() {
                       required
                       step="0.01"
                       min="0"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                     />
                   </div>
 
                   {/* Recurring Toggle */}
-                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                  <div className="flex items-center justify-between p-4 border border-border/50 bg-muted/20 rounded-xl">
                     <div className="flex items-center gap-3">
-                      <Repeat className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                        <Repeat className="w-5 h-5 text-primary" />
+                      </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">Ingreso mensual</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Se repite cada mes</p>
+                        <p className="font-semibold text-foreground">Ingreso mensual</p>
+                        <p className="text-xs text-muted-foreground">Se repite cada mes</p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsRecurring(!isRecurring)}
                       className={`w-12 h-7 rounded-full transition-colors ${
-                        isRecurring ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+                        isRecurring ? "bg-primary" : "bg-muted-foreground/30"
                       }`}
                     >
                       <div
@@ -190,7 +193,7 @@ export default function IncomesPage() {
                   {/* Month - only show if not recurring */}
                   {!isRecurring && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Mes
                       </label>
                       <input
@@ -198,14 +201,14 @@ export default function IncomesPage() {
                         value={month}
                         onChange={(e) => setMonth(e.target.value)}
                         required
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                        className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                       />
                     </div>
                   )}
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Descripción (opcional)
                     </label>
                     <input
@@ -213,18 +216,20 @@ export default function IncomesPage() {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Ej: Sueldo, Freelance..."
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                     />
                   </div>
 
                   {/* Submit */}
-                  <button
-                    type="submit"
-                    className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
-                  >
-                    <Save className="w-5 h-5" />
-                    Agregar ingreso
-                  </button>
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      className="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-[16px] shadow-sm transition-all flex items-center justify-center gap-2"
+                    >
+                      <Save className="w-5 h-5" />
+                      Agregar ingreso
+                    </button>
+                  </div>
                 </form>
               </div>
             </div>
@@ -233,43 +238,44 @@ export default function IncomesPage() {
 
         {/* Incomes List */}
         <div className="space-y-3">
+          <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-3 px-1 mt-6">Tus ingresos</p>
           {isLoading ? (
-            <div className="text-center py-8 text-gray-500">Cargando...</div>
+            <div className="text-center py-8 text-muted-foreground">Cargando...</div>
           ) : incomes.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center">
-              <DollarSign className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 dark:text-gray-400">No tienes ingresos cargados</p>
+            <div className="bg-card border border-border/40 rounded-2xl p-8 text-center shadow-sm">
+              <DollarSign className="w-12 h-12 text-muted mx-auto mb-3" />
+              <p className="text-muted-foreground">No tienes ingresos cargados</p>
               <button
                 onClick={() => setShowForm(true)}
-                className="mt-4 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+                className="mt-4 px-5 py-2.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-[16px] font-semibold transition-colors"
               >
-                Agregar primer ingreso
+                Agregar mi primer ingreso
               </button>
             </div>
           ) : (
             incomes.map((income) => (
               <div
                 key={income.id}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4"
+                className="bg-card rounded-2xl p-4 shadow-sm border border-border/40 flex items-center gap-4 transition-all hover:shadow-md"
               >
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${
                   income.is_recurring 
-                    ? "bg-purple-100 dark:bg-purple-900/30" 
-                    : "bg-green-100 dark:bg-green-900/30"
+                    ? "bg-secondary/10" 
+                    : "bg-primary/10"
                 }`}>
                   {income.is_recurring ? (
-                    <Repeat className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                    <Repeat className="w-6 h-6 text-secondary" />
                   ) : (
-                    <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <DollarSign className="w-6 h-6 text-primary" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 dark:text-white truncate">
+                  <p className="font-semibold text-foreground truncate">
                     {income.description || "Ingreso"}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                  <p className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
                     {income.is_recurring ? (
-                      <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded text-xs font-medium">
+                      <span className="text-[10px] uppercase tracking-wider font-bold bg-secondary/10 text-secondary px-2 py-0.5 rounded-full">
                         Mensual
                       </span>
                     ) : (
@@ -277,47 +283,24 @@ export default function IncomesPage() {
                     )}
                   </p>
                 </div>
-                <p className="font-bold text-green-600 dark:text-green-400 whitespace-nowrap">
+                <p className="font-bold text-primary whitespace-nowrap text-lg">
                   +${Number(income.amount).toLocaleString("es-AR")}
                 </p>
-                <button
-                  onClick={() => handleDelete(income.id)}
-                  className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4 text-red-400" />
-                </button>
+                <div className="ml-2">
+                  <button
+                    onClick={() => handleDelete(income.id)}
+                    className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </button>
+                </div>
               </div>
             ))
           )}
         </div>
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex justify-around">
-          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-gray-400">
-            <Home className="w-6 h-6" />
-            <span className="text-xs">Inicio</span>
-          </Link>
-          <Link href="/expenses" className="flex flex-col items-center gap-1 text-gray-400">
-            <Receipt className="w-6 h-6" />
-            <span className="text-xs">Gastos</span>
-          </Link>
-          <Link href="/scan" className="flex flex-col items-center gap-1 -mt-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
-              <Scan className="w-7 h-7 text-white" />
-            </div>
-          </Link>
-          <Link href="/reports" className="flex flex-col items-center gap-1 text-gray-400">
-            <TrendingUp className="w-6 h-6" />
-            <span className="text-xs">Reportes</span>
-          </Link>
-          <Link href="/settings" className="flex flex-col items-center gap-1 text-gray-400">
-            <Settings className="w-6 h-6" />
-            <span className="text-xs">Config</span>
-          </Link>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }

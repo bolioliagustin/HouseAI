@@ -19,6 +19,7 @@ import {
   Users,
   User,
 } from "lucide-react";
+import { BottomNav } from "@/components/BottomNav";
 import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 
 type FixedExpense = {
@@ -126,58 +127,58 @@ export default function ExpensesPage() {
   const getCategoryInfo = (cat: string) => CATEGORIES.find((c) => c.value === cat) || CATEGORIES[10];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 pb-24">
+    <div className="min-h-screen pb-24">
       {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <header className="bg-background/90 backdrop-blur-lg border-b border-border/40 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </Link>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Gastos Fijos</h1>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Gastos Fijos</h1>
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="p-2 bg-green-500 hover:bg-green-600 rounded-xl text-white transition-colors"
+            className="p-2 bg-primary hover:bg-primary/90 rounded-xl text-primary-foreground transition-colors shadow-sm"
           >
             <Plus className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-5">
+      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Summary Card */}
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 shadow-xl text-white">
-          <p className="text-blue-100 text-sm font-medium mb-1">Total gastos fijos mensuales</p>
-          <p className="text-4xl font-bold">
+        <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40">
+          <p className="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-1">Total gastos fijos mensuales</p>
+          <p className="text-[2.5rem] leading-none font-bold text-primary">
             ${totalExpenses.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
           </p>
         </div>
 
         {/* Form Modal */}
         {showForm && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+            <div className="bg-card rounded-t-[32px] sm:rounded-[24px] w-full max-w-md max-h-[85vh] overflow-y-auto shadow-2xl border border-border/10">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-xl font-bold text-foreground">
                     {editingId ? "Editar gasto" : "Nuevo gasto fijo"}
                   </h2>
                   <button
                     onClick={resetForm}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="p-2 hover:bg-muted rounded-full transition-colors"
                   >
-                    <X className="w-5 h-5 text-gray-500" />
+                    <X className="w-5 h-5 text-muted-foreground" />
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Amount */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Monto
                     </label>
                     <input
@@ -188,19 +189,19 @@ export default function ExpensesPage() {
                       required
                       step="0.01"
                       min="0"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                     />
                   </div>
 
                   {/* Category */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Categoría
                     </label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all appearance-none"
                     >
                       {CATEGORIES.map((cat) => (
                         <option key={cat.value} value={cat.value}>
@@ -212,7 +213,7 @@ export default function ExpensesPage() {
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Descripción (opcional)
                     </label>
                     <input
@@ -220,14 +221,14 @@ export default function ExpensesPage() {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Ej: Alquiler departamento"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-3 rounded-xl border border-border/50 bg-muted/30 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-muted-foreground"
                     />
                   </div>
 
                   {/* Expense Type Selector */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Tipo de gasto
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                       Tipo de gasto
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       <button
@@ -235,15 +236,15 @@ export default function ExpensesPage() {
                         onClick={() => setExpenseType("personal")}
                         className={`p-3 rounded-xl border-2 text-center transition-all ${
                           expenseType === "personal"
-                            ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                            ? "border-primary bg-primary/5"
+                            : "border-border/50 bg-card hover:bg-muted/50"
                         }`}
                       >
                         <User className={`w-5 h-5 mx-auto mb-1 ${
-                          expenseType === "personal" ? "text-green-600" : "text-gray-400"
+                          expenseType === "personal" ? "text-primary" : "text-muted-foreground"
                         }`} />
                         <p className={`text-xs font-medium ${
-                          expenseType === "personal" ? "text-green-700 dark:text-green-400" : "text-gray-500"
+                          expenseType === "personal" ? "text-primary" : "text-muted-foreground"
                         }`}>Personal</p>
                       </button>
                       <button
@@ -251,15 +252,15 @@ export default function ExpensesPage() {
                         onClick={() => setExpenseType("house")}
                         className={`p-3 rounded-xl border-2 text-center transition-all ${
                           expenseType === "house"
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                            ? "border-secondary bg-secondary/5"
+                            : "border-border/50 bg-card hover:bg-muted/50"
                         }`}
                       >
                         <HomeIcon className={`w-5 h-5 mx-auto mb-1 ${
-                          expenseType === "house" ? "text-blue-600" : "text-gray-400"
+                          expenseType === "house" ? "text-secondary" : "text-muted-foreground"
                         }`} />
                         <p className={`text-xs font-medium ${
-                          expenseType === "house" ? "text-blue-700 dark:text-blue-400" : "text-gray-500"
+                          expenseType === "house" ? "text-secondary" : "text-muted-foreground"
                         }`}>De la casa</p>
                       </button>
                       <button
@@ -267,19 +268,19 @@ export default function ExpensesPage() {
                         onClick={() => setExpenseType("split")}
                         className={`p-3 rounded-xl border-2 text-center transition-all ${
                           expenseType === "split"
-                            ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-                            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                            ? "border-accent bg-accent/5"
+                            : "border-border/50 bg-card hover:bg-muted/50"
                         }`}
                       >
                         <Users className={`w-5 h-5 mx-auto mb-1 ${
-                          expenseType === "split" ? "text-purple-600" : "text-gray-400"
+                          expenseType === "split" ? "text-accent" : "text-muted-foreground"
                         }`} />
                         <p className={`text-xs font-medium ${
-                          expenseType === "split" ? "text-purple-700 dark:text-purple-400" : "text-gray-500"
+                          expenseType === "split" ? "text-accent" : "text-muted-foreground"
                         }`}>Dividido</p>
                       </button>
                     </div>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 px-1">
+                    <p className="text-xs text-muted-foreground mt-2 px-1">
                       {expenseType === "personal" && "Solo aparece en tus gastos"}
                       {expenseType === "house" && "Se registra como gasto de la casa, sin dividir"}
                       {expenseType === "split" && "Se divide entre los miembros de la casa"}
@@ -287,13 +288,15 @@ export default function ExpensesPage() {
                   </div>
 
                   {/* Submit */}
-                  <button
-                    type="submit"
-                    className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
-                  >
-                    <Save className="w-5 h-5" />
-                    {editingId ? "Guardar cambios" : "Agregar gasto"}
-                  </button>
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      className="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-[16px] shadow-sm transition-all flex items-center justify-center gap-2"
+                    >
+                      <Save className="w-5 h-5" />
+                      {editingId ? "Guardar cambios" : "Agregar gasto"}
+                    </button>
+                  </div>
                 </form>
               </div>
             </div>
@@ -302,17 +305,18 @@ export default function ExpensesPage() {
 
         {/* Expenses List */}
         <div className="space-y-3">
+          <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-3 px-1 mt-6">Tus gastos</p>
           {isLoading ? (
-            <div className="text-center py-8 text-gray-500">Cargando...</div>
+            <div className="text-center py-8 text-muted-foreground">Cargando...</div>
           ) : expenses.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center">
-              <Receipt className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 dark:text-gray-400">No tienes gastos fijos cargados</p>
+            <div className="bg-card border border-border/40 rounded-2xl p-8 text-center shadow-sm">
+              <Receipt className="w-12 h-12 text-muted mx-auto mb-3" />
+              <p className="text-muted-foreground">No tienes gastos fijos cargados</p>
               <button
                 onClick={() => setShowForm(true)}
-                className="mt-4 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+                className="mt-4 px-5 py-2.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-[16px] font-semibold transition-colors"
               >
-                Agregar primer gasto
+                Agregar mi primer gasto
               </button>
             </div>
           ) : (
@@ -321,41 +325,41 @@ export default function ExpensesPage() {
               return (
                 <div
                   key={expense.id}
-                  className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4"
+                  className="bg-card rounded-2xl p-4 shadow-sm border border-border/40 flex items-center gap-4 transition-all hover:shadow-md"
                 >
-                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center text-2xl">
+                  <div className="w-12 h-12 bg-muted/60 rounded-xl flex items-center justify-center text-2xl shadow-inner">
                     {catInfo.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-white truncate">
+                    <p className="font-semibold text-foreground truncate">
                       {expense.description || catInfo.label}
                     </p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-muted-foreground">
                         {catInfo.label}
                       </span>
                       {expense.is_shared && (
-                        <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] uppercase tracking-wider font-bold bg-secondary/10 text-secondary px-2 py-0.5 rounded-full">
                           Compartido
                         </span>
                       )}
                     </div>
                   </div>
-                  <p className="font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                  <p className="font-bold text-foreground whitespace-nowrap text-lg">
                     ${Number(expense.amount).toLocaleString("es-AR")}
                   </p>
-                  <div className="flex gap-1">
+                  <div className="flex flex-col gap-1 md:flex-row ml-2">
                     <button
                       onClick={() => handleEdit(expense)}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      className="p-1.5 hover:bg-muted rounded-lg transition-colors"
                     >
-                      <Edit2 className="w-4 h-4 text-gray-400" />
+                      <Edit2 className="w-4 h-4 text-muted-foreground" />
                     </button>
                     <button
                       onClick={() => handleDelete(expense.id)}
-                      className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors"
                     >
-                      <Trash2 className="w-4 h-4 text-red-400" />
+                      <Trash2 className="w-4 h-4 text-destructive" />
                     </button>
                   </div>
                 </div>
@@ -365,44 +369,7 @@ export default function ExpensesPage() {
         </div>
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex justify-around">
-          <Link
-            href="/dashboard"
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          >
-            <HomeIcon className="w-6 h-6" />
-            <span className="text-xs">Inicio</span>
-          </Link>
-          <Link
-            href="/expenses"
-            className="flex flex-col items-center gap-1 text-green-600 dark:text-green-400"
-          >
-            <Receipt className="w-6 h-6" />
-            <span className="text-xs font-medium">Gastos</span>
-          </Link>
-          <Link href="/scan" className="flex flex-col items-center gap-1 -mt-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
-              <Scan className="w-7 h-7 text-white" />
-            </div>
-          </Link>
-          <Link
-            href="/reports"
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          >
-            <TrendingUp className="w-6 h-6" />
-            <span className="text-xs">Reportes</span>
-          </Link>
-          <Link
-            href="/settings"
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          >
-            <Settings className="w-6 h-6" />
-            <span className="text-xs">Config</span>
-          </Link>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }
