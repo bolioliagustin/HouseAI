@@ -77,7 +77,9 @@ export default function SharedExpensesPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [balance, setBalance] = useState({ owe: 0, owed: 0 });
-  const [memberSpending, setMemberSpending] = useState<MemberSpending[]>([]);
+  const [memberSpending, setMemberSpending] = useState<
+    { user_id: string; name: string; total: number; netDebt: number }[]
+  >([]);
   const [memberCount, setMemberCount] = useState(1);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newInstallment, setNewInstallment] = useState({
@@ -190,8 +192,8 @@ export default function SharedExpensesPage() {
     }
 
     if (sharedExpenses) {
-      // Calculate per-member spending
-      const spendingMap = new Map<string, { name: string; total: number }>();
+      // Calculate per-member spending and net debt
+      const spendingMap = new Map<string, { name: string; total: number; netDebt: number }>();
 
       members?.forEach((m) => {
         const userData = m.users as unknown as {
@@ -201,15 +203,16 @@ export default function SharedExpensesPage() {
         spendingMap.set(m.user_id, {
           name: userData?.name || userData?.email || "Miembro",
           total: 0,
+          netDebt: 0,
         });
       });
 
-      // Fix: Calculate per-member spending using real splits
+      // Calculate per-member spending and net debt using splits
       sharedExpenses.forEach((exp) => {
         const splits = (exp.expense_splits as { amount: number; is_paid: boolean; user_id: string }[]) || [];
 
         if (splits.length > 0) {
-          // Gasto dividido: cada miembro acumula su split
+          // Gasto dividido: cada miembro acumula su split al gasto total
           splits.forEach((split) => {
             const memberEntry = spendingMap.get(split.user_id);
             if (memberEntry) {
@@ -229,6 +232,23 @@ export default function SharedExpensesPage() {
             });
           }
         }
+
+        // Net Debt logic
+        if (exp.is_shared && exp.paid_by) {
+          const unpaidSplits = splits.filter((s) => !s.is_paid && s.user_id !== exp.paid_by);
+          unpaidSplits.forEach((split) => {
+            // debtor owes money (+)
+            const debtor = spendingMap.get(split.user_id);
+            if (debtor) {
+              spendingMap.set(split.user_id, { ...debtor, netDebt: debtor.netDebt + split.amount });
+            }
+            // creditor is owed money (-)
+            const creditor = spendingMap.get(exp.paid_by);
+            if (creditor) {
+              spendingMap.set(exp.paid_by, { ...creditor, netDebt: creditor.netDebt - split.amount });
+            }
+          });
+        }
       });
 
       setMemberSpending(
@@ -236,8 +256,20 @@ export default function SharedExpensesPage() {
           user_id,
           name: data.name,
           total: data.total,
+          netDebt: data.netDebt,
         }))
       );
+
+      // Extract current user's net debt to update 'balance' state
+      const myMemberData = spendingMap.get(user.id);
+      const myNetDebt = myMemberData ? myMemberData.netDebt : 0;
+      
+      let owe = 0;
+      let owed = 0;
+      if (myNetDebt > 0.01) owe = myNetDebt;
+      if (myNetDebt < -0.01) owed = Math.abs(myNetDebt);
+
+      setBalance({ owe, owed });
 
       // Process expenses for the list
       const processed = sharedExpenses.map((exp) => {
@@ -276,34 +308,6 @@ export default function SharedExpensesPage() {
       });
 
       setExpenses(processed);
-
-      // Calculate balance (only from split expenses)
-      let owe = 0;
-      let owed = 0;
-
-      processed.forEach((exp) => {
-        if (!exp.is_split) return;
-
-        if (exp.paid_by === user.id) {
-          const unpaidSplits = (
-            sharedExpenses.find((e) => e.id === exp.id)?.expense_splits as {
-              amount: number;
-              is_paid: boolean;
-              user_id: string;
-            }[]
-          )?.filter((s) => !s.is_paid && s.user_id !== user.id);
-
-          unpaidSplits?.forEach((s) => {
-            owed += s.amount;
-          });
-        } else {
-          if (exp.my_split > 0 && !exp.is_paid) {
-            owe += exp.my_split;
-          }
-        }
-      });
-
-      setBalance({ owe, owed });
     }
 
     setIsLoading(false);
@@ -785,8 +789,9 @@ export default function SharedExpensesPage() {
                     : 0;
 
                 return (
-                  <div key={member.user_id}>
-                    <div className="flex justify-between items-center mb-2">
+                  <div key={member.user_id} className="mb-4 last:mb-0">
+                    {/* Primary Spending Bar */}
+                    <div className="flex justify-between items-center mb-1.5">
                       <span
                         className={`text-sm font-semibold uppercase tracking-wider ${
                           member.user_id === myUserId
@@ -800,7 +805,7 @@ export default function SharedExpensesPage() {
                         ${member.total.toLocaleString("es-AR")}
                       </span>
                     </div>
-                    <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden shadow-inner">
+                    <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden shadow-inner mb-2">
                       <div
                         className={`h-full rounded-full transition-all ${
                           member.user_id === myUserId
@@ -810,6 +815,28 @@ export default function SharedExpensesPage() {
                         style={{ width: `${Math.min(percentage, 100)}%` }}
                       />
                     </div>
+
+                    {/* Secondary Net Debt Bar */}
+                    {Math.abs(member.netDebt) > 0.01 && (
+                      <div className="pl-2 pr-1 border-l-2 border-border/40 mt-3">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            {member.netDebt > 0 ? "Debe a la casa" : "A favor"}
+                          </span>
+                          <span className={`text-xs font-bold ${member.netDebt > 0 ? "text-destructive" : "text-emerald-500"}`}>
+                            ${Math.abs(member.netDebt).toLocaleString("es-AR")}
+                          </span>
+                        </div>
+                        <div className="w-full h-1.5 bg-muted/40 rounded-full overflow-hidden shadow-inner">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              member.netDebt > 0 ? "bg-destructive" : "bg-emerald-500"
+                            }`}
+                            style={{ width: `${Math.min((Math.abs(member.netDebt) / (totalHouseSpending || 1)) * 100, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -821,26 +848,32 @@ export default function SharedExpensesPage() {
                 ${totalHouseSpending.toLocaleString("es-AR")}
               </span>
             </div>
+            <p className="text-[10px] text-muted-foreground mt-4 text-center">
+              (Las deudas entre miembros se calculan de forma neta)
+            </p>
           </div>
         )}
 
         {/* Balance Cards - only if there are splits */}
         {(balance.owe > 0 || balance.owed > 0) && (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-destructive/10 rounded-[24px] p-5 border border-transparent hover:border-destructive/20 transition-all text-center">
-              <p className="text-xs font-bold uppercase tracking-wider text-destructive mb-1">Debo</p>
-              <p className="text-2xl font-bold text-destructive">
-                ${balance.owe.toLocaleString("es-AR")}
-              </p>
-            </div>
-            <div className="bg-secondary/10 rounded-[24px] p-5 border border-transparent hover:border-secondary/20 transition-all text-center">
-              <p className="text-xs font-bold uppercase tracking-wider text-secondary mb-1">
-                Me deben
-              </p>
-              <p className="text-2xl font-bold text-secondary">
-                ${balance.owed.toLocaleString("es-AR")}
-              </p>
-            </div>
+          <div className="flex justify-center">
+            {balance.owe > 0 ? (
+              <div className="bg-destructive/10 rounded-[24px] p-5 border border-transparent hover:border-destructive/20 transition-all text-center w-full sm:w-1/2">
+                <p className="text-xs font-bold uppercase tracking-wider text-destructive mb-1">Debo a la casa</p>
+                <p className="text-2xl font-bold text-destructive">
+                  ${balance.owe.toLocaleString("es-AR")}
+                </p>
+              </div>
+            ) : (
+              <div className="bg-secondary/10 rounded-[24px] p-5 border border-transparent hover:border-secondary/20 transition-all text-center w-full sm:w-1/2">
+                <p className="text-xs font-bold uppercase tracking-wider text-secondary mb-1">
+                  La casa me debe
+                </p>
+                <p className="text-2xl font-bold text-secondary">
+                  ${balance.owed.toLocaleString("es-AR")}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
