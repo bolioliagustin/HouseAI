@@ -22,6 +22,8 @@ import {
   Save,
   Users,
   User,
+  Plus,
+  FileText,
 } from "lucide-react";
 import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 
@@ -64,8 +66,13 @@ export default function ScanPage() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [mode, setMode] = useState<"choose" | "scan" | "manual">("choose");
   // "personal" = solo mío, "house" = de la casa sin dividir, "split" = dividido
   const [expenseType, setExpenseType] = useState<"personal" | "house" | "split">("personal");
+  // Manual entry state
+  const [manualStore, setManualStore] = useState("");
+  const [manualDate, setManualDate] = useState(new Date().toISOString().split("T")[0]);
+  const [manualItem, setManualItem] = useState({ name: "", quantity: "1", unit_price: "", category: "Supermercado" });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
@@ -338,9 +345,54 @@ export default function ScanPage() {
     setImagePreview(null);
     setError(null);
     setSaved(false);
+    setMode("choose");
+    setManualStore("");
+    setManualDate(new Date().toISOString().split("T")[0]);
+    setManualItem({ name: "", quantity: "1", unit_price: "", category: "Supermercado" });
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  }
+
+  function startManualMode() {
+    setMode("manual");
+    setResult({
+      store: null,
+      date: new Date().toISOString().split("T")[0],
+      items: [],
+      subtotal: null,
+      total: 0,
+    });
+  }
+
+  function addManualItem(e: React.FormEvent) {
+    e.preventDefault();
+    if (!manualItem.name.trim() || !manualItem.unit_price) return;
+    if (!result) return;
+
+    const qty = parseFloat(manualItem.quantity) || 1;
+    const price = parseFloat(manualItem.unit_price) || 0;
+
+    const newItem: ReceiptItem = {
+      name: manualItem.name.trim(),
+      quantity: qty,
+      unit_price: price,
+      total: qty * price,
+      category: manualItem.category,
+    };
+
+    const newItems = [...result.items, newItem];
+    const newTotal = newItems.reduce((sum, item) => sum + item.total, 0);
+
+    setResult({
+      ...result,
+      store: manualStore || null,
+      date: manualDate,
+      items: newItems,
+      total: newTotal,
+    });
+
+    setManualItem({ name: "", quantity: "1", unit_price: "", category: manualItem.category });
   }
 
   return (
@@ -354,57 +406,168 @@ export default function ScanPage() {
           >
             <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           </Link>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Escanear Ticket</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            {mode === "manual" ? "Cargar Gasto Manual" : "Escanear Ticket"}
+          </h1>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-5">
-        {/* Upload Section */}
-        {!result && !isLoading && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Camera className="w-10 h-10 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                Sube tu ticket
-              </h2>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
-                Tomá una foto o seleccioná una imagen del ticket de compra
-              </p>
+        {/* Choose Mode */}
+        {mode === "choose" && !result && !isLoading && (
+          <div className="space-y-4">
+            {/* Scan Option */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Camera className="w-10 h-10 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  Escanear Ticket
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  Tomá una foto o seleccioná una imagen del ticket de compra
+                </p>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
 
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg flex items-center gap-2 hover:shadow-xl transition-all"
-                >
-                  <Camera className="w-5 h-5" />
-                  Tomar foto
-                </button>
-                <button
-                  onClick={() => {
-                    if (fileInputRef.current) {
-                      fileInputRef.current.removeAttribute("capture");
-                      fileInputRef.current.click();
-                      fileInputRef.current.setAttribute("capture", "environment");
-                    }
-                  }}
-                  className="px-6 py-3 border-2 border-purple-500 text-purple-600 dark:text-purple-400 font-medium rounded-xl flex items-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all"
-                >
-                  <Upload className="w-5 h-5" />
-                  Subir imagen
-                </button>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-medium rounded-xl shadow-lg flex items-center gap-2 hover:shadow-xl transition-all"
+                  >
+                    <Camera className="w-5 h-5" />
+                    Tomar foto
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (fileInputRef.current) {
+                        fileInputRef.current.removeAttribute("capture");
+                        fileInputRef.current.click();
+                        fileInputRef.current.setAttribute("capture", "environment");
+                      }
+                    }}
+                    className="px-6 py-3 border-2 border-purple-500 text-purple-600 dark:text-purple-400 font-medium rounded-xl flex items-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all"
+                  >
+                    <Upload className="w-5 h-5" />
+                    Subir imagen
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-4">
+              <hr className="flex-1 border-gray-200 dark:border-gray-700" />
+              <span className="text-sm text-gray-400 dark:text-gray-500 font-medium">o</span>
+              <hr className="flex-1 border-gray-200 dark:border-gray-700" />
+            </div>
+
+            {/* Manual Option */}
+            <button
+              onClick={startManualMode}
+              className="w-full bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <FileText className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-bold text-gray-900 dark:text-white">Cargar manualmente</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Agregá los items uno a uno, sin necesidad de ticket</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        )}
+
+        {/* Manual Entry Form */}
+        {mode === "manual" && result && !saved && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg border border-gray-100 dark:border-gray-700 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">Tienda</label>
+                <input
+                  type="text"
+                  value={manualStore}
+                  onChange={(e) => setManualStore(e.target.value)}
+                  placeholder="Ej: Carrefour"
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">Fecha</label>
+                <input
+                  type="date"
+                  value={manualDate}
+                  onChange={(e) => setManualDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+                />
+              </div>
+            </div>
+
+            <hr className="border-gray-100 dark:border-gray-700" />
+
+            <form onSubmit={addManualItem} className="space-y-3">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Agregar item</p>
+              <input
+                type="text"
+                value={manualItem.name}
+                onChange={(e) => setManualItem({ ...manualItem, name: e.target.value })}
+                placeholder="Nombre del producto"
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+              />
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs text-gray-400 mb-1 block">Cant.</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={manualItem.quantity}
+                    onChange={(e) => setManualItem({ ...manualItem, quantity: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 mb-1 block">Precio unit.</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={manualItem.unit_price}
+                    onChange={(e) => setManualItem({ ...manualItem, unit_price: e.target.value })}
+                    placeholder="$"
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 mb-1 block">Categoría</label>
+                  <select
+                    value={manualItem.category}
+                    onChange={(e) => setManualItem({ ...manualItem, category: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm"
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <button
+                type="submit"
+                disabled={!manualItem.name.trim() || !manualItem.unit_price}
+                className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-white font-medium rounded-xl flex items-center justify-center gap-2 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Agregar item
+              </button>
+            </form>
           </div>
         )}
 
@@ -449,7 +612,7 @@ export default function ScanPage() {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <p className="text-purple-100 text-sm">
-                    {result.store || "Ticket escaneado"}
+                    {result.store || (mode === "manual" ? "Gasto manual" : "Ticket escaneado")}
                   </p>
                   <p className="text-3xl font-bold">
                     ${result.total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
@@ -462,7 +625,7 @@ export default function ScanPage() {
                 )}
               </div>
               <p className="text-purple-100 text-sm">
-                {result.items.length} productos detectados
+                {result.items.length} {mode === "manual" ? "productos cargados" : "productos detectados"}
               </p>
             </div>
 
