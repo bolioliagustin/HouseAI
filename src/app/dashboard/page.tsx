@@ -188,7 +188,7 @@ export default async function DashboardPage() {
           <p className="text-4xl font-bold mb-4">
             ${balance.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
           </p>
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/20">
+          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/20">
             <div>
               <p className="text-green-100 text-xs">Ingresos</p>
               <p className="text-lg font-semibold">
@@ -201,11 +201,22 @@ export default async function DashboardPage() {
                 ${totalFixed.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
               </p>
             </div>
-            <div>
-              <p className="text-green-100 text-xs">Gastos del mes</p>
-              <p className="text-lg font-semibold">
-                ${totalShared.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
-              </p>
+          </div>
+          {/* Monthly expenses breakdown */}
+          <div className="mt-3 pt-3 border-t border-white/10 space-y-1">
+            <div className="flex justify-between items-center">
+              <p className="text-green-100 text-xs">Gastos personales del mes</p>
+              <p className="text-sm font-semibold">${totalSharedPersonal.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</p>
+            </div>
+            {houseMember?.house_id && (
+              <div className="flex justify-between items-center">
+                <p className="text-green-100 text-xs">Gastos de la casa (tu parte)</p>
+                <p className="text-sm font-semibold">${totalSharedHouse.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</p>
+              </div>
+            )}
+            <div className="flex justify-between items-center pt-1 border-t border-white/10">
+              <p className="text-white text-xs font-semibold">Total gastos del mes</p>
+              <p className="text-sm font-bold">${totalShared.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</p>
             </div>
           </div>
         </div>

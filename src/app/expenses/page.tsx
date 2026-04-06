@@ -93,60 +93,6 @@ export default function ExpensesPage() {
       await supabase.from("fixed_expenses").insert({ ...expenseData, user_id: user.id });
     }
 
-    // If "house" or "split", also create a shared_expense record
-    if (expenseType !== "personal" && !editingId) {
-      const { data: membership } = await supabase
-        .from("house_members")
-        .select("house_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (membership?.house_id) {
-        const catInfo = CATEGORIES.find((c) => c.value === category);
-        const expenseDesc = `${catInfo?.icon || "\uD83D\uDCE6"} ${description || catInfo?.label || category}`;
-
-        const { data: sharedExpense } = await supabase
-          .from("shared_expenses")
-          .insert({
-            house_id: membership.house_id,
-            paid_by: user.id,
-            total_amount: parseFloat(amount),
-            category: category,
-            description: expenseDesc,
-            date: new Date().toISOString().split("T")[0],
-            is_shared: true,
-          })
-          .select()
-          .single();
-
-        // If "split", create splits for all house members
-        if (expenseType === "split" && sharedExpense) {
-          const { data: members } = await supabase
-            .from("house_members")
-            .select("user_id")
-            .eq("house_id", membership.house_id);
-
-          if (members && members.length > 0) {
-            const splitAmount = parseFloat(amount) / members.length;
-            const splits = members.map((member) => ({
-              expense_id: sharedExpense.id,
-              user_id: member.user_id,
-              amount: splitAmount,
-              is_paid: member.user_id === user.id,
-            }));
-            await supabase.from("expense_splits").insert(splits);
-          }
-        }
-
-        await sendNotification(
-          NOTIFICATION_TEMPLATES.NEW_EXPENSE(
-            parseFloat(amount),
-            expenseDesc,
-          )
-        );
-      }
-    }
-
     resetForm();
     loadExpenses();
   }
