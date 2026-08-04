@@ -23,7 +23,8 @@ import {
 } from "lucide-react";
 import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 import { BottomNav } from "@/components/BottomNav";
-import { computeMemberSpending } from "@/lib/shared-spending";
+import { computeMemberSpending, aporteBalanceSummary, settlementForUser, totalOutlays } from "@/lib/shared-spending";
+import type { MemberSpending } from "@/lib/shared-spending";
 
 type SharedExpense = {
   id: string;
@@ -43,12 +44,6 @@ type SharedExpense = {
     total: number;
     category: string;
   }[];
-};
-
-type MemberSpending = {
-  user_id: string;
-  name: string;
-  total: number;
 };
 
 type Installment = {
@@ -78,10 +73,7 @@ export default function SharedExpensesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
-  const [balance, setBalance] = useState({ owe: 0, owed: 0 });
-  const [memberSpending, setMemberSpending] = useState<
-    { user_id: string; name: string; total: number; netDebt: number }[]
-  >([]);
+  const [memberSpending, setMemberSpending] = useState<MemberSpending[]>([]);
   const [memberCount, setMemberCount] = useState(1);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newInstallment, setNewInstallment] = useState({
@@ -228,17 +220,6 @@ export default function SharedExpensesPage() {
 
       setMemberSpending(computedSpending);
 
-      // Extract current user's net debt to update 'balance' state
-      const myMemberData = computedSpending.find((m) => m.user_id === user.id);
-      const myNetDebt = myMemberData ? myMemberData.netDebt : 0;
-
-      let owe = 0;
-      let owed = 0;
-      if (myNetDebt > 0.01) owe = myNetDebt;
-      if (myNetDebt < -0.01) owed = Math.abs(myNetDebt);
-
-      setBalance({ owe, owed });
-
       // Process expenses for the list
       const processed = sharedExpenses.map((exp) => {
         const payer = exp.users as unknown as {
@@ -292,6 +273,28 @@ export default function SharedExpensesPage() {
       .update({ is_paid: true })
       .eq("expense_id", expenseId)
       .eq("user_id", user.id);
+
+    loadExpenses();
+  }
+
+  /** Settle all unpaid split rows for the current user (marks their debts as paid). */
+  async function settleMyAccounts() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const unpaidExpenseIds = expenses
+      .filter((e) => e.is_split && !e.is_paid && e.paid_by !== user.id)
+      .map((e) => e.id);
+
+    if (unpaidExpenseIds.length === 0) return;
+
+    await supabase
+      .from("expense_splits")
+      .update({ is_paid: true })
+      .eq("user_id", user.id)
+      .in("expense_id", unpaidExpenseIds);
 
     loadExpenses();
   }
@@ -456,6 +459,11 @@ export default function SharedExpensesPage() {
     (sum, m) => sum + m.total,
     0
   );
+  const aporteSummary = aporteBalanceSummary(memberSpending);
+  const settlement = myUserId
+    ? settlementForUser(memberSpending, myUserId)
+    : { myNetDebt: 0, counterpart: null, label: null };
+  const outlaySum = totalOutlays(memberSpending);
 
   return (
     <div className="min-h-screen pb-24">
@@ -469,7 +477,7 @@ export default function SharedExpensesPage() {
             <ArrowLeft className="w-5 h-5 text-muted-foreground" />
           </Link>
           <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Gastos de la Casa
+            Cuenta de la casa
           </h1>
         </div>
       </header>
@@ -485,8 +493,8 @@ export default function SharedExpensesPage() {
                   <HomeIcon className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-foreground">Gastos Fijos Mensuales</h3>
-                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Alquiler, expensas, servicios…</p>
+                  <h3 className="font-bold text-foreground">Presupuesto fijo mensual</h3>
+                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">No mueve aportes ni cuentas · solo referencia</p>
                 </div>
               </div>
               <Link
@@ -513,8 +521,8 @@ export default function SharedExpensesPage() {
                         ${Number(fe.amount).toLocaleString("es-AR")}
                       </p>
                       {perPerson !== null && (
-                        <p className="text-xs font-medium text-primary">
-                          ${perPerson.toLocaleString("es-AR", { minimumFractionDigits: 0 })}/persona
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Ref. ${perPerson.toLocaleString("es-AR", { minimumFractionDigits: 0 })}/pers.
                         </p>
                       )}
                     </div>
@@ -746,111 +754,131 @@ export default function SharedExpensesPage() {
           )}
         </div>
         
-        {/* Member Spending Summary */}
+        {/* Aportes + Cuentas — two separate house health metrics */}
         {memberSpending.length > 0 && (
-          <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40 transition-all hover:shadow-md">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="bg-primary/10 p-2 rounded-xl">
-                 <Users className="w-5 h-5 text-primary" />
+          <div className="space-y-4">
+            {/* Aportes */}
+            <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <div className="bg-secondary/10 p-2 rounded-xl">
+                    <HomeIcon className="w-5 h-5 text-secondary" />
+                  </div>
+                  <h3 className="font-bold text-foreground">Aportes</h3>
+                </div>
+                {outlaySum > 0 && (
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                      aporteSummary.isBalanced
+                        ? "bg-emerald-500/10 text-emerald-600"
+                        : "bg-amber-500/10 text-amber-700"
+                    }`}
+                  >
+                    {aporteSummary.isBalanced
+                      ? "Parejos"
+                      : `${aporteSummary.leader?.user_id === myUserId ? "Vos" : aporteSummary.leader?.name || "Alguien"} puso $${Math.ceil(aporteSummary.gap).toLocaleString("es-AR")} más`}
+                  </span>
+                )}
               </div>
-              <h3 className="font-bold text-foreground">
-                Gasto por persona
-              </h3>
-            </div>
+              <p className="text-xs text-muted-foreground mb-5 ml-12 -mt-1">
+                Quién puso plata sin generar deuda
+              </p>
 
-            <div className="space-y-4">
-              {memberSpending.map((member) => {
-                const percentage =
-                  totalHouseSpending > 0
-                    ? (member.total / totalHouseSpending) * 100
-                    : 0;
-
-                return (
-                  <div key={member.user_id} className="mb-4 last:mb-0">
-                    {/* Primary Spending Bar */}
-                    <div className="flex justify-between items-center mb-1.5">
-                      <span
-                        className={`text-sm font-semibold uppercase tracking-wider ${
-                          member.user_id === myUserId
-                            ? "text-secondary"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {member.user_id === myUserId ? "Vos" : member.name}
-                      </span>
-                      <span className="text-sm font-bold text-foreground">
-                        ${member.total.toLocaleString("es-AR")}
-                      </span>
-                    </div>
-                    <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden shadow-inner mb-2">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          member.user_id === myUserId
-                            ? "bg-secondary"
-                            : "bg-primary"
-                        }`}
-                        style={{ width: `${Math.min(percentage, 100)}%` }}
-                      />
-                    </div>
-
-                    {/* Secondary Net Debt Bar */}
-                    {Math.abs(member.netDebt) > 0.01 && (
-                      <div className="pl-2 pr-1 border-l-2 border-border/40 mt-3">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                            {member.netDebt > 0 ? "Debe a la casa" : "A favor"}
+              {outlaySum < 0.01 ? (
+                <p className="text-sm text-muted-foreground text-center py-2">
+                  Todavía no hay aportes este mes
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {memberSpending.map((member) => {
+                    const percentage =
+                      outlaySum > 0 ? (member.outlayTotal / outlaySum) * 100 : 0;
+                    return (
+                      <div key={member.user_id}>
+                        <div className="flex justify-between items-center mb-1.5">
+                          <span
+                            className={`text-sm font-semibold ${
+                              member.user_id === myUserId
+                                ? "text-secondary"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            {member.user_id === myUserId ? "Vos" : member.name}
                           </span>
-                          <span className={`text-xs font-bold ${member.netDebt > 0 ? "text-destructive" : "text-emerald-500"}`}>
-                            ${Math.abs(member.netDebt).toLocaleString("es-AR")}
+                          <span className="text-sm font-bold text-foreground">
+                            ${member.outlayTotal.toLocaleString("es-AR")}
                           </span>
                         </div>
-                        <div className="w-full h-1.5 bg-muted/40 rounded-full overflow-hidden shadow-inner">
+                        <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden shadow-inner">
                           <div
                             className={`h-full rounded-full transition-all ${
-                              member.netDebt > 0 ? "bg-destructive" : "bg-emerald-500"
+                              member.user_id === myUserId ? "bg-secondary" : "bg-primary"
                             }`}
-                            style={{ width: `${Math.min((Math.abs(member.netDebt) / (totalHouseSpending || 1)) * 100, 100)}%` }}
+                            style={{ width: `${Math.min(percentage, 100)}%` }}
                           />
                         </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            <div className="mt-6 pt-4 border-t border-border/40 flex justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total casa</span>
-              <span className="font-bold text-foreground text-lg">
+            {/* Cuentas */}
+            <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="bg-accent/10 p-2 rounded-xl">
+                  <Users className="w-5 h-5 text-accent" />
+                </div>
+                <h3 className="font-bold text-foreground">Cuentas</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-5 ml-12 -mt-1">
+                Deudas de gastos divididos (se compensan entre sí)
+              </p>
+
+              {Math.abs(settlement.myNetDebt) < 0.01 ? (
+                <p className="text-sm font-medium text-emerald-600 text-center py-2">
+                  Están al día — nadie se debe nada
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <div
+                    className={`rounded-[20px] p-4 text-center ${
+                      settlement.myNetDebt > 0
+                        ? "bg-destructive/10"
+                        : "bg-secondary/10"
+                    }`}
+                  >
+                    <p
+                      className={`text-sm font-bold ${
+                        settlement.myNetDebt > 0
+                          ? "text-destructive"
+                          : "text-secondary"
+                      }`}
+                    >
+                      {settlement.label}
+                    </p>
+                  </div>
+                  {settlement.myNetDebt > 0.01 && (
+                    <button
+                      onClick={settleMyAccounts}
+                      className="w-full py-3 bg-foreground text-background font-bold rounded-[16px] hover:bg-foreground/90 transition-colors"
+                    >
+                      Marcar saldado
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between px-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Total cuenta
+              </span>
+              <span className="font-bold text-foreground">
                 ${totalHouseSpending.toLocaleString("es-AR")}
               </span>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-4 text-center">
-              (Las deudas entre miembros se calculan de forma neta)
-            </p>
-          </div>
-        )}
-
-        {/* Balance Cards - only if there are splits */}
-        {(balance.owe > 0 || balance.owed > 0) && (
-          <div className="flex justify-center">
-            {balance.owe > 0 ? (
-              <div className="bg-destructive/10 rounded-[24px] p-5 border border-transparent hover:border-destructive/20 transition-all text-center w-full sm:w-1/2">
-                <p className="text-xs font-bold uppercase tracking-wider text-destructive mb-1">Debo a la casa</p>
-                <p className="text-2xl font-bold text-destructive">
-                  ${balance.owe.toLocaleString("es-AR")}
-                </p>
-              </div>
-            ) : (
-              <div className="bg-secondary/10 rounded-[24px] p-5 border border-transparent hover:border-secondary/20 transition-all text-center w-full sm:w-1/2">
-                <p className="text-xs font-bold uppercase tracking-wider text-secondary mb-1">
-                  La casa me debe
-                </p>
-                <p className="text-2xl font-bold text-secondary">
-                  ${balance.owed.toLocaleString("es-AR")}
-                </p>
-              </div>
-            )}
           </div>
         )}
 
@@ -863,7 +891,7 @@ export default function SharedExpensesPage() {
                <ShoppingBag className="w-8 h-8 text-muted-foreground" />
             </div>
             <p className="text-foreground font-semibold">
-              No hay gastos de la casa
+              No hay movimientos en la cuenta
             </p>
             <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
@@ -887,7 +915,7 @@ export default function SharedExpensesPage() {
             <div className="flex flex-col gap-3 mb-4 px-2">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-foreground">
-                  Gastos recientes
+                  Movimientos
                 </h3>
                 <button
                   onClick={() => setShowAddManualModal(true)}
@@ -966,9 +994,13 @@ export default function SharedExpensesPage() {
                       <p className="font-semibold text-foreground truncate">
                         {expense.description || expense.category}
                       </p>
-                      {!expense.is_split && (
+                      {!expense.is_split ? (
+                        <span className="text-[10px] px-2 py-0.5 bg-secondary/10 text-secondary rounded-full font-bold uppercase tracking-wider shrink-0">
+                          Aporte
+                        </span>
+                      ) : (
                         <span className="text-[10px] px-2 py-0.5 bg-accent/10 text-accent rounded-full font-bold uppercase tracking-wider shrink-0">
-                          Sin dividir
+                          Dividir
                         </span>
                       )}
                     </div>
@@ -1077,9 +1109,9 @@ export default function SharedExpensesPage() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-xl font-bold text-foreground">Agregar gasto</h2>
+                  <h2 className="text-xl font-bold text-foreground">Agregar a la cuenta</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Misma clasificación que al escanear un ticket
+                    Elegí si suma a aportes o genera deuda
                   </p>
                 </div>
                 <button onClick={() => setShowAddManualModal(false)} className="p-2 hover:bg-muted rounded-full transition-colors">
@@ -1124,7 +1156,7 @@ export default function SharedExpensesPage() {
                       }`} />
                       <p className={`text-xs font-bold ${
                         manualExpenseType === "house" ? "text-foreground" : "text-muted-foreground"
-                      }`}>De la casa</p>
+                      }`}>Aporte</p>
                     </button>
                     <button
                       type="button"
@@ -1140,13 +1172,13 @@ export default function SharedExpensesPage() {
                       }`} />
                       <p className={`text-xs font-bold ${
                         manualExpenseType === "split" ? "text-foreground" : "text-muted-foreground"
-                      }`}>Dividido</p>
+                      }`}>Dividir</p>
                     </button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2 px-1">
                     {manualExpenseType === "house"
-                      ? "Gasto de la casa, para todos pero sin dividir."
-                      : "El gasto se dividirá en partes iguales."}
+                      ? "Suma a lo que cada uno puso. No genera deuda."
+                      : "Se parte; el otro te debe su parte."}
                   </p>
                 </div>
 
@@ -1202,8 +1234,8 @@ export default function SharedExpensesPage() {
                   {isSavingManual
                     ? "Guardando..."
                     : manualExpenseType === "split"
-                      ? "Agregar gasto dividido"
-                      : "Agregar gasto de la casa"}
+                      ? "Agregar dividido"
+                      : "Agregar aporte"}
                 </button>
               </div>
             </div>

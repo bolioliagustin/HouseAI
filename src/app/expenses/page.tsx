@@ -195,7 +195,7 @@ export default function ExpensesPage() {
               }`}
             >
               <HomeIcon className="w-4 h-4" />
-              De la casa
+              Presupuesto casa
               {houseExpenses.length > 0 && (
                 <span className={`text-xs ml-0.5 px-1.5 py-0.5 rounded-full font-bold ${
                   activeTab === "casa" ? "bg-secondary-foreground/20" : "bg-muted"
@@ -225,15 +225,18 @@ export default function ExpensesPage() {
         ) : (
           <div className="bg-card rounded-[24px] p-6 shadow-sm border border-border/40">
             <p className="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-1">
-              Gastos fijos de la casa
+              Presupuesto fijo de la casa
             </p>
             <p className="text-[2.5rem] leading-none font-bold text-secondary">
               ${totalHouse.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
             </p>
+            <p className="text-xs text-muted-foreground mt-3 font-medium">
+              Referencia mensual (alquiler, expensas…). No crea aportes ni deudas.
+            </p>
             {memberCount > 1 && (
               <div className="mt-4 pt-4 border-t border-border/40 flex justify-between items-center">
                 <p className="text-xs text-muted-foreground font-medium">
-                  Tu parte ({memberCount} personas)
+                  Referencia por persona ({memberCount})
                 </p>
                 <p className="text-base font-bold text-secondary">
                   ${myHousePart.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
@@ -241,6 +244,12 @@ export default function ExpensesPage() {
                 </p>
               </div>
             )}
+            <Link
+              href="/shared"
+              className="mt-4 block text-center text-xs font-semibold text-primary hover:underline"
+            >
+              Movimientos de la cuenta → Cuenta de la casa
+            </Link>
           </div>
         )}
 
@@ -257,7 +266,7 @@ export default function ExpensesPage() {
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {activeTab === "personal"
                         ? "Solo para vos, mensualmente"
-                        : "Fijo mensual de la casa (alquiler, expensas…). No crea deudas."}
+                        : "Presupuesto fijo mensual. No genera aportes ni deudas."}
                     </p>
                   </div>
                   <button onClick={resetForm} className="p-2 hover:bg-muted rounded-full transition-colors">
@@ -288,7 +297,7 @@ export default function ExpensesPage() {
                           : "text-muted-foreground"
                       }`}
                     >
-                      <Users className="w-4 h-4" /> De la casa
+                      <Users className="w-4 h-4" /> Presupuesto casa
                     </button>
                   </div>
                 )}
@@ -358,7 +367,7 @@ export default function ExpensesPage() {
                       }`}
                     >
                       <Save className="w-5 h-5" />
-                      {editingId ? "Guardar cambios" : "Agregar gasto"}
+                      {editingId ? "Guardar cambios" : "Agregar fijo"}
                     </button>
                   </div>
                 </form>
@@ -370,7 +379,7 @@ export default function ExpensesPage() {
         {/* Expenses List */}
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-3 px-1 mt-2">
-            {activeTab === "personal" ? "Tus gastos personales" : "Gastos fijos de la casa"}
+            {activeTab === "personal" ? "Tus gastos personales" : "Presupuesto fijo de la casa"}
           </p>
           {isLoading ? (
             <div className="text-center py-8 text-muted-foreground">Cargando...</div>
@@ -433,8 +442,8 @@ export default function ExpensesPage() {
                       ${Number(expense.amount).toLocaleString("es-AR")}
                     </p>
                     {perPerson !== null && (
-                      <p className="text-xs font-medium text-secondary">
-                        ${perPerson.toLocaleString("es-AR", { minimumFractionDigits: 0 })}/persona
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Ref. ${perPerson.toLocaleString("es-AR", { minimumFractionDigits: 0 })}/pers.
                       </p>
                     )}
                   </div>

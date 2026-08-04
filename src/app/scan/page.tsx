@@ -771,7 +771,7 @@ export default function ScanPage() {
                   }`} />
                   <p className={`text-xs font-bold ${
                     expenseType === "house" ? "text-foreground" : "text-muted-foreground"
-                  }`}>De la casa</p>
+                  }`}>Aporte</p>
                 </button>
                 <button
                   type="button"
@@ -787,13 +787,13 @@ export default function ScanPage() {
                   }`} />
                   <p className={`text-xs font-bold ${
                     expenseType === "split" ? "text-foreground" : "text-muted-foreground"
-                  }`}>Dividido</p>
+                  }`}>Dividir</p>
                 </button>
               </div>
               <p className="text-xs text-muted-foreground px-1">
                 {expenseType === "personal" && "Solo aparece en tus gastos."}
-                {expenseType === "house" && "Gasto de la casa, para todos pero sin dividir."}
-                {expenseType === "split" && "El gasto se dividirá en partes iguales."}
+                {expenseType === "house" && "Suma a lo que cada uno puso. No genera deuda."}
+                {expenseType === "split" && "Se parte; el otro te debe su parte."}
               </p>
             </div>
 
