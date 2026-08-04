@@ -220,10 +220,12 @@ export default async function DashboardPage() {
             </div>
             {houseMember?.house_id && (
               <div className="flex justify-between items-center text-sm">
-                <p className="text-muted-foreground">Gastos de la casa</p>
+                <p className="text-muted-foreground">Tu parte de la casa</p>
                 <div className="text-right">
                   <p className="font-semibold text-foreground">${totalSharedHouse.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</p>
-                  <p className="text-[10px] text-muted-foreground">Total: ${sharedHouse.reduce((acc: number, val: any) => acc + Number(val.total_amount), 0).toLocaleString("es-AR")}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Tickets: ${sharedHouse.reduce((acc: number, val: any) => acc + Number(val.total_amount), 0).toLocaleString("es-AR")}
+                  </p>
                 </div>
               </div>
             )}

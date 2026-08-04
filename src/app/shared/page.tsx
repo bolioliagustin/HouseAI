@@ -217,16 +217,15 @@ export default function SharedExpensesPage() {
         const splits = (exp.expense_splits as { amount: number; is_paid: boolean; user_id: string }[]) || [];
 
         if (splits.length > 0) {
-          // Gasto dividido: cada miembro acumula su split al gasto total solo si fue pagado
+          // Gasto dividido: cada miembro acumula su cuota al gasto total.
+          // is_paid solo afecta deudas (netDebt), no el gasto atribuido ni Total casa.
           splits.forEach((split) => {
-            if (split.is_paid) {
-              const memberEntry = spendingMap.get(split.user_id);
-              if (memberEntry) {
-                spendingMap.set(split.user_id, {
-                  ...memberEntry,
-                  total: memberEntry.total + Number(split.amount),
-                });
-              }
+            const memberEntry = spendingMap.get(split.user_id);
+            if (memberEntry) {
+              spendingMap.set(split.user_id, {
+                ...memberEntry,
+                total: memberEntry.total + Number(split.amount),
+              });
             }
           });
         } else {
