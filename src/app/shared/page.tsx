@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { NOTIFICATION_TEMPLATES, sendNotification } from "@/lib/notifications";
 import { BottomNav } from "@/components/BottomNav";
+import { computeMemberSpending } from "@/lib/shared-spending";
 
 type SharedExpense = {
   id: string;
@@ -197,79 +198,39 @@ export default function SharedExpensesPage() {
     }
 
     if (sharedExpenses) {
-      // Calculate per-member spending and net debt
-      const spendingMap = new Map<string, { name: string; total: number; netDebt: number }>();
+      const memberInputs =
+        members?.map((m) => {
+          const userData = m.users as unknown as {
+            name: string | null;
+            email: string;
+          };
+          return {
+            user_id: m.user_id,
+            name: userData?.name || userData?.email || "Miembro",
+          };
+        }) || [];
 
-      members?.forEach((m) => {
-        const userData = m.users as unknown as {
-          name: string | null;
-          email: string;
-        };
-        spendingMap.set(m.user_id, {
-          name: userData?.name || userData?.email || "Miembro",
-          total: 0,
-          netDebt: 0,
-        });
-      });
-
-      // Calculate per-member spending and net debt using splits
-      sharedExpenses.forEach((exp) => {
-        const splits = (exp.expense_splits as { amount: number; is_paid: boolean; user_id: string }[]) || [];
-
-        if (splits.length > 0) {
-          // Gasto dividido: cada miembro acumula su cuota al gasto total.
-          // is_paid solo afecta deudas (netDebt), no el gasto atribuido ni Total casa.
-          splits.forEach((split) => {
-            const memberEntry = spendingMap.get(split.user_id);
-            if (memberEntry) {
-              spendingMap.set(split.user_id, {
-                ...memberEntry,
-                total: memberEntry.total + Number(split.amount),
-              });
-            }
-          });
-        } else {
-          // Gasto sin dividir: suma el total al que pagó
-          const current = spendingMap.get(exp.paid_by);
-          if (current) {
-            spendingMap.set(exp.paid_by, {
-              ...current,
-              total: current.total + Number(exp.total_amount),
-            });
-          }
-        }
-
-        // Net Debt logic
-        if (exp.is_shared && exp.paid_by) {
-          const unpaidSplits = splits.filter((s) => !s.is_paid && s.user_id !== exp.paid_by);
-          unpaidSplits.forEach((split) => {
-            // debtor owes money (+)
-            const debtor = spendingMap.get(split.user_id);
-            if (debtor) {
-              spendingMap.set(split.user_id, { ...debtor, netDebt: debtor.netDebt + split.amount });
-            }
-            // creditor is owed money (-)
-            const creditor = spendingMap.get(exp.paid_by);
-            if (creditor) {
-              spendingMap.set(exp.paid_by, { ...creditor, netDebt: creditor.netDebt - split.amount });
-            }
-          });
-        }
-      });
-
-      setMemberSpending(
-        Array.from(spendingMap.entries()).map(([user_id, data]) => ({
-          user_id,
-          name: data.name,
-          total: data.total,
-          netDebt: data.netDebt,
+      const computedSpending = computeMemberSpending(
+        memberInputs,
+        sharedExpenses.map((exp) => ({
+          paid_by: exp.paid_by,
+          total_amount: Number(exp.total_amount),
+          is_shared: exp.is_shared,
+          expense_splits:
+            (exp.expense_splits as {
+              amount: number;
+              is_paid: boolean;
+              user_id: string;
+            }[]) || [],
         }))
       );
 
+      setMemberSpending(computedSpending);
+
       // Extract current user's net debt to update 'balance' state
-      const myMemberData = spendingMap.get(user.id);
+      const myMemberData = computedSpending.find((m) => m.user_id === user.id);
       const myNetDebt = myMemberData ? myMemberData.netDebt : 0;
-      
+
       let owe = 0;
       let owed = 0;
       if (myNetDebt > 0.01) owe = myNetDebt;
