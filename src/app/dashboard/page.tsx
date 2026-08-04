@@ -253,7 +253,7 @@ export default async function DashboardPage() {
               <div className="w-10 h-10 bg-card rounded-full flex items-center justify-center shadow-sm">
                 <Receipt className="w-5 h-5 text-primary" />
               </div>
-              <span className="text-sm font-medium text-foreground">Gastos</span>
+              <span className="text-sm font-medium text-foreground">Gastos fijos</span>
             </Link>
 
             <Link

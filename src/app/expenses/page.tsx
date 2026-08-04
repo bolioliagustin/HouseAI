@@ -257,7 +257,7 @@ export default function ExpensesPage() {
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {activeTab === "personal"
                         ? "Solo para vos, mensualmente"
-                        : `Se divide entre ${memberCount} personas de la casa`}
+                        : "Fijo mensual de la casa (alquiler, expensas…). No crea deudas."}
                     </p>
                   </div>
                   <button onClick={resetForm} className="p-2 hover:bg-muted rounded-full transition-colors">
@@ -391,12 +391,22 @@ export default function ExpensesPage() {
                   ? "Agregá tus suscripciones, seguros, etc."
                   : "Agregá el alquiler, expensas, servicios compartidos…"}
               </p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="mt-4 px-5 py-2.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-[16px] font-semibold transition-colors"
-              >
-                Agregar gasto
-              </button>
+              <div className="mt-4 flex flex-col items-center gap-2">
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="px-5 py-2.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-[16px] font-semibold transition-colors"
+                >
+                  Agregar gasto fijo
+                </button>
+                {activeTab === "casa" && (
+                  <Link
+                    href="/shared"
+                    className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    ¿Gasto único o dividido? Ir a Gastos de la Casa
+                  </Link>
+                )}
+              </div>
             </div>
           ) : (
             displayedExpenses.map((expense) => {
