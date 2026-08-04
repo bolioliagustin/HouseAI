@@ -30,7 +30,7 @@ export function BottomNav() {
           }`}
         >
           <Receipt className={`w-5 h-5 ${pathname === "/expenses" ? "fill-primary/20" : ""}`} />
-          <span className="text-[10px] font-medium tracking-wide">Gastos</span>
+          <span className="text-[10px] font-medium tracking-wide">Fijos</span>
         </Link>
         <Link
           href="/scan"

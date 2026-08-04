@@ -2,8 +2,13 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Home, Receipt, TrendingUp, Scan, Settings, LogOut, Plus, Users, ShoppingCart, ChevronRight, Sparkles } from "lucide-react";
+import { Home, Receipt, TrendingUp, Scan, LogOut, Plus, ShoppingCart, ChevronRight, Sparkles } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import {
+  aporteBalanceSummary,
+  computeMemberSpending,
+  settlementForUser,
+} from "@/lib/shared-spending";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -28,32 +33,27 @@ export default async function DashboardPage() {
     fixedExpensesRes,
     sharedExpensesRes,
   ] = await Promise.all([
-    // Profile
     supabase.from("users").select("*").eq("id", user.id).single(),
-    // Monthly Incomes
     supabase
       .from("incomes")
       .select("amount")
       .eq("user_id", user.id)
       .eq("month", currentMonthStart),
-    // Recurring Incomes
     supabase
       .from("incomes")
       .select("amount")
       .eq("user_id", user.id)
       .eq("is_recurring", true),
-    // House Membership
     supabase
       .from("house_members")
       .select("house_id, role, houses(name, invite_code)")
       .eq("user_id", user.id)
       .maybeSingle(),
-    // Fixed Expenses
     supabase
       .from("fixed_expenses")
       .select("amount, is_shared")
       .eq("user_id", user.id),
-    // Shared Expenses paid by this user this month (tickets + house expenses)
+    // Shared expenses paid by this user this month (personal budget)
     supabase
       .from("shared_expenses")
       .select("id, total_amount, is_shared, house_id")
@@ -69,33 +69,26 @@ export default async function DashboardPage() {
   const sharedExpenses = sharedExpensesRes.data || [];
 
   // 2. Dependent Parallel Fetch (only if in a house)
-  let memberCountPromise = Promise.resolve(1) as any;
-  let splitsPromise = Promise.resolve({ data: [] }) as any;
-  let otherMemberPromise = Promise.resolve({ data: null }) as any;
+  let houseLedgerPromise = Promise.resolve({ members: [] as any[], expenses: [] as any[] });
 
   if (houseMember?.house_id) {
-    memberCountPromise = supabase
-      .from("house_members")
-      .select("*", { count: "exact", head: true })
-      .eq("house_id", houseMember.house_id)
-      .then((res) => res.count || 1);
-
-    splitsPromise = supabase
-      .from("expense_splits")
-      .select("amount, is_paid, user_id, shared_expenses!inner(paid_by)")
-      .eq("user_id", user.id)
-      .eq("is_paid", false);
-
-    otherMemberPromise = supabase
-      .from("house_members")
-      .select("user_id, users(name, email)")
-      .eq("house_id", houseMember.house_id)
-      .neq("user_id", user.id)
-      .maybeSingle();
+    houseLedgerPromise = Promise.all([
+      supabase
+        .from("house_members")
+        .select("user_id, users(name, email)")
+        .eq("house_id", houseMember.house_id),
+      supabase
+        .from("shared_expenses")
+        .select("paid_by, total_amount, is_shared, expense_splits(amount, is_paid, user_id)")
+        .eq("house_id", houseMember.house_id)
+        .gte("date", currentMonthStart),
+    ]).then(([membersRes, expensesRes]) => ({
+      members: membersRes.data || [],
+      expenses: expensesRes.data || [],
+    }));
   }
 
-  // Also fetch expense_splits for shared expenses where this user is paid_by
-  // to know which ones were actually split (so we only count our portion)
+  // Splits for expenses this user paid (personal budget: only own share of dividir)
   let mySplitsAsPayer: any[] = [];
   if (sharedExpenses.length > 0) {
     const sharedExpenseIds = sharedExpenses.map((e: any) => e.id);
@@ -106,23 +99,17 @@ export default async function DashboardPage() {
     mySplitsAsPayer = splitsData || [];
   }
 
-  const [memberCount, splitsRes, otherMemberRes] = await Promise.all([
-    memberCountPromise,
-    splitsPromise,
-    otherMemberPromise,
-  ]);
+  const houseLedger = await houseLedgerPromise;
 
   // 3. Process Data
   const totalMonthly = monthlyIncomes?.reduce((sum, inc) => sum + Number(inc.amount), 0) || 0;
   const totalRecurring = recurringIncomes?.reduce((sum, inc) => sum + Number(inc.amount), 0) || 0;
   const totalIncome = totalMonthly + totalRecurring;
 
-  // Fixed expenses: count full amount (is_shared flag on fixed_expenses is just metadata now)
   const totalFixed = fixedExpenses?.reduce((sum, exp) => {
     return sum + Number(exp.amount);
   }, 0) || 0;
 
-  // Shared expenses split into personal (no house_id) vs house (has house_id)
   const sharedPersonal = sharedExpenses.filter((e: any) => !e.house_id);
   const sharedHouse = sharedExpenses.filter((e: any) => !!e.house_id);
 
@@ -141,12 +128,25 @@ export default async function DashboardPage() {
 
   const totalShared = totalSharedPersonal + totalSharedHouse;
 
-  const splits = splitsRes.data;
-  const sharedBalance = splits?.reduce((sum: number, split: any) => sum + Number(split.amount), 0) || 0;
-  
-  // Note: otherMemberName logic was unused in UI, removing it for cleaner code
-  // or keeping it if needed for future expansion.
-  // The current UI uses houseMember.houses.name for display.
+  // House account health (same math as /shared)
+  const houseMembersForSpending = houseLedger.members.map((m: any) => {
+    const userData = m.users as { name: string | null; email: string } | null;
+    return {
+      user_id: m.user_id,
+      name: userData?.name || userData?.email || "Miembro",
+    };
+  });
+  const houseSpending = computeMemberSpending(
+    houseMembersForSpending,
+    houseLedger.expenses.map((exp: any) => ({
+      paid_by: exp.paid_by,
+      total_amount: Number(exp.total_amount),
+      is_shared: exp.is_shared,
+      expense_splits: exp.expense_splits || [],
+    }))
+  );
+  const houseSettlement = settlementForUser(houseSpending, user.id);
+  const houseAportes = aporteBalanceSummary(houseSpending);
 
   const balance = totalIncome - totalFixed - totalShared;
 
@@ -220,10 +220,12 @@ export default async function DashboardPage() {
             </div>
             {houseMember?.house_id && (
               <div className="flex justify-between items-center text-sm">
-                <p className="text-muted-foreground">Gastos de la casa</p>
+                <p className="text-muted-foreground">Tu parte de la casa</p>
                 <div className="text-right">
                   <p className="font-semibold text-foreground">${totalSharedHouse.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</p>
-                  <p className="text-[10px] text-muted-foreground">Total: ${sharedHouse.reduce((acc: number, val: any) => acc + Number(val.total_amount), 0).toLocaleString("es-AR")}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Tickets: ${sharedHouse.reduce((acc: number, val: any) => acc + Number(val.total_amount), 0).toLocaleString("es-AR")}
+                  </p>
                 </div>
               </div>
             )}
@@ -251,7 +253,7 @@ export default async function DashboardPage() {
               <div className="w-10 h-10 bg-card rounded-full flex items-center justify-center shadow-sm">
                 <Receipt className="w-5 h-5 text-primary" />
               </div>
-              <span className="text-sm font-medium text-foreground">Gastos</span>
+              <span className="text-sm font-medium text-foreground">Gastos fijos</span>
             </Link>
 
             <Link
@@ -300,14 +302,21 @@ export default async function DashboardPage() {
                   <Home className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground text-sm">Mi casa</h3>
-                  {sharedBalance > 0 ? (
-                    <p className="text-accent font-medium text-xs">
-                      Debés ${Math.ceil(sharedBalance).toLocaleString("es-AR")}
+                  <h3 className="font-semibold text-foreground text-sm">Cuenta de la casa</h3>
+                  {houseSettlement.label ? (
+                    <p className={`font-medium text-xs ${houseSettlement.myNetDebt > 0 ? "text-destructive" : "text-secondary"}`}>
+                      {houseSettlement.label}
                     </p>
                   ) : (
                     <p className="text-primary font-medium text-xs">
-                      ¡Estás al día! 🎉
+                      Cuentas al día
+                    </p>
+                  )}
+                  {houseAportes.totalOutlay > 0 && (
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {houseAportes.isBalanced
+                        ? "Aportes parejos"
+                        : `Aportes: ${houseAportes.leader?.user_id === user.id ? "vos" : houseAportes.leader?.name || "alguien"} puso $${Math.ceil(houseAportes.gap).toLocaleString("es-AR")} más`}
                     </p>
                   )}
                 </div>
